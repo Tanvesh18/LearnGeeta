@@ -9,10 +9,14 @@ class ShlokaMatchScreen extends StatefulWidget {
 }
 
 class _ShlokaMatchScreenState extends State<ShlokaMatchScreen> {
+  // Expanded pool of shlokas with meanings
   final Map<String, String> shlokas = {
     'कर्मण्येवाधिकारस्ते': 'Focus on your actions, not results',
     'योगस्थः कुरु कर्माणि': 'Be steady in yoga while acting',
     'न हि ज्ञानेन सदृशम्': 'Nothing is purer than knowledge',
+    'उद्धरेदात्मनाऽऽत्मानं': 'Lift yourself by your own mind',
+    'श्रद्धावान् लभते ज्ञानम्': 'The faithful attain true wisdom',
+    'समः शत्रौ च मित्रे च': 'See friend and enemy with equal vision',
   };
 
   String? matchedShloka;

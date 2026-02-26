@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 
 class TrueFalseScreen extends StatefulWidget {
@@ -8,15 +9,51 @@ class TrueFalseScreen extends StatefulWidget {
 }
 
 class _TrueFalseScreenState extends State<TrueFalseScreen> {
-  final String question =
-      'Bhagavad Gita teaches detachment from actions.';
+  // Expanded pool of Gita-based statements
+  final List<String> _questions = [
+    'Bhagavad Gita teaches detachment from the results of actions.',
+    'According to the Gita, avoiding all work is the best path.',
+    'Krishna spoke the Bhagavad Gita to Arjuna on the battlefield of Kurukshetra.',
+    'The Gita says only monks can reach the Supreme.',
+    'Bhagavad Gita is part of the Mahabharata.',
+    'The Gita encourages doing one’s swadharma (own duty) sincerely.',
+    'According to the Gita, controlling the mind is compared to controlling the wind.',
+    'Bhakti (devotion) is mentioned in the Gita as a path to the Divine.',
+  ];
 
-  final bool correctAnswer = false;
+  // Match each statement to its correct answer
+  late final Map<String, bool> _answers = {
+    _questions[0]: true,
+    _questions[1]: false,
+    _questions[2]: true,
+    _questions[3]: false,
+    _questions[4]: true,
+    _questions[5]: true,
+    _questions[6]: true,
+    _questions[7]: true,
+  };
+
+  late String question;
+  late bool correctAnswer;
   String? result;
+
+  @override
+  void initState() {
+    super.initState();
+    _pickRandomQuestion();
+  }
+
+  void _pickRandomQuestion() {
+    final random = Random();
+    question = _questions[random.nextInt(_questions.length)];
+    correctAnswer = _answers[question] ?? false;
+    result = null;
+  }
 
   void _answer(bool choice) {
     setState(() {
-      result = choice == correctAnswer ? 'Correct 🎉' : 'Wrong 🙏';
+      final isCorrect = choice == correctAnswer;
+      result = isCorrect ? 'Correct 🎉' : 'Wrong 🙏';
     });
   }
 
@@ -55,7 +92,7 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
               ],
             ),
             const SizedBox(height: 20),
-            if (result != null)
+            if (result != null) ...[
               Text(
                 result!,
                 style: const TextStyle(
@@ -63,6 +100,16 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    _pickRandomQuestion();
+                  });
+                },
+                child: const Text('Next Question'),
+              ),
+            ],
           ],
         ),
       ),

@@ -10,18 +10,37 @@ class VerseOrderScreen extends StatefulWidget {
 }
 
 class _VerseOrderScreenState extends State<VerseOrderScreen> {
-  final List<String> correctOrder = [
-    'कर्मण्येवाधिकारस्ते',
-    'मा फलेषु कदाचन',
-    'मा कर्मफलहेतुर्भूः',
-    'मा ते सङ्गोऽस्त्वकर्मणि',
+  // Multiple famous verse sequences from the Gita
+  final List<List<String>> _allSequences = [
+    [
+      'कर्मण्येवाधिकारस्ते',
+      'मा फलेषु कदाचन',
+      'मा कर्मफलहेतुर्भूः',
+      'मा ते सङ्गोऽस्त्वकर्मणि',
+    ],
+    [
+      'वासांसि जीर्णानि यथा विहाय',
+      'नवानि गृह्णाति नरोऽपराणि',
+      'तथा शरीराणि विहाय जीर्णा',
+      'नवानि संयाति नवानि देही',
+    ],
+    [
+      'उद्धरेदात्मनाऽऽत्मानं',
+      'नात्मानमवसादयेत्',
+      'आत्मैव ह्यात्मनो बन्धुः',
+      'आत्मैव रिपुरात्मनः',
+    ],
   ];
 
+  late List<String> correctOrder;
   late List<String> shuffled;
 
   @override
   void initState() {
     super.initState();
+    // Pick a random verse sequence each time the game opens
+    _allSequences.shuffle();
+    correctOrder = List.from(_allSequences.first);
     shuffled = List.from(correctOrder)..shuffle();
   }
 
