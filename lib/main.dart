@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'core/theme/app_theme.dart';
 import 'auth/auth_gate.dart';
@@ -7,9 +8,11 @@ import 'auth/auth_gate.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  await dotenv.load(fileName: '.env');
+
   await Supabase.initialize(
-    url: 'https://wjwkjabnipuzwyxtwegj.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indqd2tqYWJuaXB1end5eHR3ZWdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMzgwNjEsImV4cCI6MjA4NzYxNDA2MX0.lCOY3i2H25mO5rOKf3BTgkeA4lKxNATVHOgbgFxotuw',
+    url: dotenv.env['SUPABASE_URL']!,
+    anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
   );
 
   runApp(const LearnGeetaApp());
