@@ -24,10 +24,7 @@ class _ShlokaMatchScreenState extends State<ShlokaMatchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Shloka Match'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Shloka Match'), centerTitle: true),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -87,9 +84,7 @@ class _ShlokaMatchScreenState extends State<ShlokaMatchScreen> {
                     ? AppColors.saffron.withOpacity(0.2)
                     : Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: AppColors.saffron,
-                ),
+                border: Border.all(color: AppColors.saffron),
               ),
               child: Text(
                 shloka,
@@ -120,8 +115,11 @@ class _ShlokaMatchScreenState extends State<ShlokaMatchScreen> {
     );
   }
 
-  Widget _dragCard(String text,
-      {bool dragging = false, bool disabled = false}) {
+  Widget _dragCard(
+    String text, {
+    bool dragging = false,
+    bool disabled = false,
+  }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -129,8 +127,8 @@ class _ShlokaMatchScreenState extends State<ShlokaMatchScreen> {
         color: disabled
             ? Colors.grey.shade200
             : dragging
-                ? AppColors.gold
-                : Colors.white,
+            ? AppColors.gold
+            : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           if (!disabled)

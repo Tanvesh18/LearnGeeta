@@ -10,10 +10,7 @@ class PlayScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Play & Learn'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Play & Learn'), centerTitle: true),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -23,10 +20,7 @@ class PlayScreen extends StatelessWidget {
             SizedBox(height: 20),
             Text(
               'Games',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 12),
             Expanded(child: _GamesGrid()),
@@ -36,6 +30,7 @@ class PlayScreen extends StatelessWidget {
     );
   }
 }
+
 class _XPOverview extends StatelessWidget {
   const _XPOverview();
 
@@ -55,25 +50,19 @@ class _XPOverview extends StatelessWidget {
             children: [
               Text(
                 'Your Progress',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 4),
               Text('Level 1 • 0 XP'),
             ],
           ),
-          Icon(
-            Icons.auto_graph,
-            size: 32,
-            color: AppColors.saffron,
-          ),
+          Icon(Icons.auto_graph, size: 32, color: AppColors.saffron),
         ],
       ),
     );
   }
 }
+
 class _GamesGrid extends StatelessWidget {
   const _GamesGrid();
 
@@ -82,7 +71,7 @@ class _GamesGrid extends StatelessWidget {
     final games = [
       _GameData('Shloka Match', Icons.extension, true),
       _GameData('Verse Order', Icons.sort, true),
-      _GameData('Listen & Guess', Icons.headphones, true),
+      _GameData('Listen & Guess', Icons.headphones, false),
       _GameData('True or False', Icons.check_circle, true),
       _GameData('Life Situations', Icons.psychology, false),
       _GameData('Boss Battle: Maya', Icons.whatshot, false),
@@ -102,6 +91,7 @@ class _GamesGrid extends StatelessWidget {
     );
   }
 }
+
 class _GameCard extends StatelessWidget {
   final _GameData game;
 
@@ -111,24 +101,24 @@ class _GameCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: game.unlocked
-    ? () {
-        Widget screen;
-        switch (game.title) {
-          case 'Verse Order':
-            screen = const VerseOrderScreen();
-            break;
-          case 'True or False':
-            screen = const TrueFalseScreen();
-            break;
-          default:
-            screen = const ShlokaMatchScreen();
-        }
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => screen),
-        );
-      }
-    : null,
+          ? () {
+              Widget screen;
+              switch (game.title) {
+                case 'Verse Order':
+                  screen = const VerseOrderScreen();
+                  break;
+                case 'True or False':
+                  screen = const TrueFalseScreen();
+                  break;
+                default:
+                  screen = const ShlokaMatchScreen();
+              }
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => screen),
+              );
+            }
+          : null,
       borderRadius: BorderRadius.circular(16),
       child: Container(
         decoration: BoxDecoration(
@@ -152,9 +142,7 @@ class _GameCard extends StatelessWidget {
                   Icon(
                     game.icon,
                     size: 40,
-                    color: game.unlocked
-                        ? AppColors.saffron
-                        : Colors.grey,
+                    color: game.unlocked ? AppColors.saffron : Colors.grey,
                   ),
                   const SizedBox(height: 12),
                   Text(
@@ -162,9 +150,7 @@ class _GameCard extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: game.unlocked
-                          ? Colors.black
-                          : Colors.grey,
+                      color: game.unlocked ? Colors.black : Colors.grey,
                     ),
                   ),
                 ],
@@ -176,9 +162,7 @@ class _GameCard extends StatelessWidget {
                   color: Colors.white.withOpacity(0.85),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Center(
-                  child: Icon(Icons.lock, size: 32),
-                ),
+                child: const Center(child: Icon(Icons.lock, size: 32)),
               ),
           ],
         ),
@@ -186,6 +170,7 @@ class _GameCard extends StatelessWidget {
     );
   }
 }
+
 class _GameData {
   final String title;
   final IconData icon;
