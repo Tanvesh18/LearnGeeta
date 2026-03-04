@@ -60,41 +60,71 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showError(String msg) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(msg)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
   void _showSnack(String msg) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(msg)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: _logout,
-          )
+          IconButton(icon: const Icon(Icons.logout), onPressed: _logout),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            _statsCard(),
-            const SizedBox(height: 16),
-            _editCard(),
-          ],
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.blue.shade50, Colors.purple.shade50],
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // avatar and name
+              Center(
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      radius: 40,
+                      backgroundColor: Colors.grey.shade300,
+                      child: const Icon(
+                        Icons.person,
+                        size: 50,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      _nameController.text.isEmpty
+                          ? 'Your Name'
+                          : _nameController.text,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              _statsCard(),
+              const SizedBox(height: 24),
+              _editCard(),
+            ],
+          ),
         ),
       ),
     );
@@ -102,26 +132,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _statsCard() {
     return Card(
+      elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _stat('Level', _level.toString()),
-            _stat('XP', _xp.toString()),
+            _statWithIcon(Icons.star, 'Level', _level.toString()),
+            _statWithIcon(Icons.flash_on, 'XP', _xp.toString()),
           ],
         ),
       ),
     );
   }
 
-  Widget _stat(String label, String value) {
+  Widget _statWithIcon(IconData icon, String label, String value) {
     return Column(
       children: [
-        Text(value,
-            style: const TextStyle(
-                fontSize: 22, fontWeight: FontWeight.bold)),
+        Icon(icon, color: Colors.orange, size: 28),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+        ),
         Text(label, style: const TextStyle(color: Colors.grey)),
       ],
     );
@@ -129,19 +163,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _editCard() {
     return Card(
+      elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TextField(
               controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Full name'),
+              decoration: const InputDecoration(
+                labelText: 'Full name',
+                prefixIcon: Icon(Icons.person),
+              ),
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-              value: _language,
-              decoration: const InputDecoration(labelText: 'Language'),
+              initialValue: _language,
+              decoration: const InputDecoration(
+                labelText: 'Language',
+                prefixIcon: Icon(Icons.language),
+              ),
               items: const [
                 DropdownMenuItem(value: 'English', child: Text('English')),
                 DropdownMenuItem(value: 'Hindi', child: Text('Hindi')),
@@ -153,10 +195,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
                 onPressed: _save,
                 child: const Text('Save changes'),
               ),
-            )
+            ),
           ],
         ),
       ),

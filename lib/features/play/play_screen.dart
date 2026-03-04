@@ -74,7 +74,6 @@ class _GamesGrid extends StatelessWidget {
       _GameData('Listen & Guess', Icons.headphones, false),
       _GameData('True or False', Icons.check_circle, true),
       _GameData('Life Situations', Icons.psychology, false),
-      _GameData('Boss Battle: Maya', Icons.whatshot, false),
     ];
 
     return GridView.builder(

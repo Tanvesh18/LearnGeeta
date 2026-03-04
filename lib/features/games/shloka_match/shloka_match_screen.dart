@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:async';
 import '../../../core/constants/colors.dart';
+import 'models/shloka_model.dart';
 
 class ShlokaMatchScreen extends StatefulWidget {
   const ShlokaMatchScreen({super.key});
@@ -9,141 +12,435 @@ class ShlokaMatchScreen extends StatefulWidget {
 }
 
 class _ShlokaMatchScreenState extends State<ShlokaMatchScreen> {
-  // Expanded pool of shlokas with meanings
-  final Map<String, String> shlokas = {
-    'कर्मण्येवाधिकारस्ते': 'Focus on your actions, not results',
-    'योगस्थः कुरु कर्माणि': 'Be steady in yoga while acting',
-    'न हि ज्ञानेन सदृशम्': 'Nothing is purer than knowledge',
-    'उद्धरेदात्मनाऽऽत्मानं': 'Lift yourself by your own mind',
-    'श्रद्धावान् लभते ज्ञानम्': 'The faithful attain true wisdom',
-    'समः शत्रौ च मित्रे च': 'See friend and enemy with equal vision',
-  };
+  late GameState gameState;
+  Shloka? currentShloka;
+  List<String>? shuffledMeanings;
+  String? selectedMeaning;
+  bool hasAnswered = false;
+  bool isCorrect = false;
+  int remainingSeconds = 30;
+  Timer? _timer;
 
-  String? matchedShloka;
+  @override
+  void initState() {
+    super.initState();
+    _initializeGame();
+  }
+
+  Future<void> _initializeGame() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedState = prefs.getString('shlokaMatchGameState');
+
+    gameState = savedState != null
+        ? GameState.fromJson(
+            (savedState as String).split(',').asMap().entries.fold(
+              <String, dynamic>{},
+              (map, entry) {
+                final parts = entry.value.split(':');
+                if (parts.length == 2) {
+                  map[parts[0].trim()] = int.tryParse(parts[1].trim());
+                }
+                return map;
+              },
+            ),
+          )
+        : GameState();
+
+    _loadNewShloka();
+    _startTimer();
+  }
+
+  void _loadNewShloka() {
+    setState(() {
+      selectedMeaning = null;
+      hasAnswered = false;
+      isCorrect = false;
+      remainingSeconds = 30;
+    });
+
+    // Determine difficulty based on level
+    String difficulty;
+    if (gameState.level <= 3) {
+      difficulty = 'easy';
+    } else if (gameState.level <= 7) {
+      difficulty = 'medium';
+    } else {
+      difficulty = 'hard';
+    }
+
+    // Get shlokas of current difficulty and select random one
+    final availableShlokas = shlokaDatabase
+        .where((s) => s.difficulty == difficulty)
+        .toList();
+    currentShloka =
+        availableShlokas[DateTime.now().microsecond % availableShlokas.length];
+
+    // Shuffle meanings
+    shuffledMeanings = List<String>.from(currentShloka!.meaningOptions);
+    shuffledMeanings!.shuffle();
+
+    _startTimer();
+  }
+
+  void _startTimer() {
+    _timer?.cancel();
+    remainingSeconds = 30;
+
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        remainingSeconds--;
+      });
+
+      if (remainingSeconds <= 0) {
+        _timer?.cancel();
+        if (!hasAnswered) {
+          setState(() {
+            hasAnswered = true;
+            isCorrect = false;
+          });
+          _showFeedbackAndContinue();
+        }
+      }
+    });
+  }
+
+  void _checkAnswer(String selectedAnswer) {
+    if (hasAnswered) return;
+
+    _timer?.cancel();
+
+    bool correct = selectedAnswer == currentShloka!.englishMeaning;
+
+    setState(() {
+      selectedMeaning = selectedAnswer;
+      hasAnswered = true;
+      isCorrect = correct;
+    });
+
+    if (correct) {
+      // Calculate score
+      int points = 10; // Base points
+      if (currentShloka!.difficulty == 'hard') points += 5;
+      if (gameState.streak >= 3) points += 5;
+      if (gameState.streak >= 5) points += 10;
+
+      gameState = gameState.copyWith(
+        score: gameState.score + points,
+        streak: gameState.streak + 1,
+        maxStreak: max(gameState.streak + 1, gameState.maxStreak),
+        level: gameState.level + 1,
+      );
+    } else {
+      // Wrong match - reset streak
+      gameState = gameState.copyWith(streak: 0);
+    }
+
+    _saveGameState();
+    Future.delayed(const Duration(milliseconds: 800), _showFeedbackAndContinue);
+  }
+
+  void _showFeedbackAndContinue() {
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Text(
+          isCorrect ? 'Correct! 🎉' : 'Oops!',
+          style: TextStyle(color: isCorrect ? AppColors.saffron : Colors.red),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Chapter ${currentShloka!.chapter}, Verse ${currentShloka!.verseNumber}',
+            ),
+            const SizedBox(height: 12),
+            Text('Shloka: ${currentShloka!.sanskrit}'),
+            const SizedBox(height: 12),
+            Text('English: ${currentShloka!.englishMeaning}'),
+            const SizedBox(height: 8),
+            Text('Hindi: ${currentShloka!.hindiMeaning}'),
+            if (!isCorrect) ...[
+              const SizedBox(height: 12),
+              Text(
+                'Your answer: $selectedMeaning',
+                style: const TextStyle(color: Colors.red, fontSize: 12),
+              ),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _loadNewShloka();
+            },
+            child: const Text('Next'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _saveGameState() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('shlokaMatchGameState', '${gameState.toJson()}');
+  }
+
+  void _restartLevel() {
+    gameState = GameState();
+    _saveGameState();
+    _loadNewShloka();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Shloka Match'), centerTitle: true),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            const Text(
-              'Drag the meaning to the correct shloka',
-              style: TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 20),
+    if (currentShloka == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
-            Expanded(
-              child: Row(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Shloka Match'),
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.black,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      'L${gameState.level}',
+                      style: const TextStyle(fontSize: 10, color: Colors.grey),
+                    ),
+                    Text(
+                      '${gameState.score}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.blue.shade50,
+              Colors.purple.shade50,
+              Colors.orange.shade50,
+            ],
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              // Timer and Streak
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(child: _buildShlokaColumn()),
-                  const SizedBox(width: 12),
-                  Expanded(child: _buildMeaningColumn()),
+                  Row(
+                    children: [
+                      Text(
+                        '🔥 ${gameState.streak}',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '(Max: ${gameState.maxStreak})',
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: remainingSeconds <= 10 ? Colors.red : Colors.blue,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '$remainingSeconds s',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 ],
               ),
-            ),
+              const SizedBox(height: 20),
 
-            if (matchedShloka != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: Text(
-                  'Correct! 🎉',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.saffron,
-                  ),
+              // Shloka
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      currentShloka!.sanskrit,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Ch ${currentShloka!.chapter}, V ${currentShloka!.verseNumber}',
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                  ],
                 ),
               ),
-          ],
+              const SizedBox(height: 20),
+
+              // Instructions
+              const Text(
+                'Select the correct meaning:',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 12),
+
+              // Meaning Options
+              Expanded(
+                child: ListView.builder(
+                  itemCount: shuffledMeanings!.length,
+                  itemBuilder: (context, index) {
+                    final meaning = shuffledMeanings![index];
+                    final isSelected = selectedMeaning == meaning;
+                    final isCorrectAnswer =
+                        meaning == currentShloka!.englishMeaning;
+
+                    Color cardColor = Colors.white;
+                    if (hasAnswered && isSelected) {
+                      cardColor = isCorrect
+                          ? Colors.green.shade50
+                          : Colors.red.shade50;
+                    } else if (hasAnswered && isCorrectAnswer) {
+                      cardColor = Colors.green.shade50;
+                    }
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: InkWell(
+                        onTap: !hasAnswered
+                            ? () => _checkAnswer(meaning)
+                            : null,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: cardColor,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isSelected
+                                  ? (isCorrect ? Colors.green : Colors.red)
+                                  : Colors.grey.shade300,
+                              width: isSelected ? 2 : 1,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 4,
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  meaning,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color:
+                                        hasAnswered &&
+                                            !isCorrectAnswer &&
+                                            isSelected
+                                        ? Colors.red
+                                        : Colors.black,
+                                  ),
+                                ),
+                              ),
+                              if (hasAnswered && isCorrectAnswer)
+                                const Icon(
+                                  Icons.check_circle,
+                                  color: Colors.green,
+                                ),
+                              if (hasAnswered && isSelected && !isCorrect)
+                                Icon(Icons.close, color: Colors.red),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              // Action Buttons
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: _restartLevel,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Restart'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
-
-  /// LEFT COLUMN — DROP TARGETS
-  Widget _buildShlokaColumn() {
-    return Column(
-      children: shlokas.keys.map((shloka) {
-        return DragTarget<String>(
-          onAccept: (meaning) {
-            if (shlokas[shloka] == meaning) {
-              setState(() {
-                matchedShloka = shloka;
-              });
-            }
-          },
-          builder: (context, candidateData, rejectedData) {
-            return Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: matchedShloka == shloka
-                    ? AppColors.saffron.withOpacity(0.2)
-                    : Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.saffron),
-              ),
-              child: Text(
-                shloka,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            );
-          },
-        );
-      }).toList(),
-    );
-  }
-
-  /// RIGHT COLUMN — DRAGGABLE MEANINGS
-  Widget _buildMeaningColumn() {
-    return Column(
-      children: shlokas.values.map((meaning) {
-        return Draggable<String>(
-          data: meaning,
-          feedback: _dragCard(meaning, dragging: true),
-          childWhenDragging: _dragCard(meaning, disabled: true),
-          child: _dragCard(meaning),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _dragCard(
-    String text, {
-    bool dragging = false,
-    bool disabled = false,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: disabled
-            ? Colors.grey.shade200
-            : dragging
-            ? AppColors.gold
-            : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          if (!disabled)
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 6,
-              offset: const Offset(0, 3),
-            ),
-        ],
-      ),
-      child: Text(
-        text,
-        textAlign: TextAlign.center,
-        style: const TextStyle(fontSize: 14),
-      ),
-    );
-  }
 }
+
+int max(int a, int b) => a > b ? a : b;
