@@ -33,16 +33,16 @@ class _ShlokaMatchScreenState extends State<ShlokaMatchScreen> {
 
     gameState = savedState != null
         ? GameState.fromJson(
-            (savedState as String).split(',').asMap().entries.fold(
-              <String, dynamic>{},
-              (map, entry) {
-                final parts = entry.value.split(':');
-                if (parts.length == 2) {
-                  map[parts[0].trim()] = int.tryParse(parts[1].trim());
-                }
-                return map;
-              },
-            ),
+            savedState.split(',').asMap().entries.fold(<String, dynamic>{}, (
+              map,
+              entry,
+            ) {
+              final parts = entry.value.split(':');
+              if (parts.length == 2) {
+                map[parts[0].trim()] = int.tryParse(parts[1].trim());
+              }
+              return map;
+            }),
           )
         : GameState();
 

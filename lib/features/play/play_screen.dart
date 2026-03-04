@@ -3,6 +3,7 @@ import '../../core/constants/colors.dart';
 import '../games/shloka_match/shloka_match_screen.dart';
 import '../games/verse_order/verse_order_screen.dart';
 import '../games/true_false/true_false_screen.dart';
+import '../games/dharma_choices/dharma_choices_screen.dart';
 
 class PlayScreen extends StatelessWidget {
   const PlayScreen({super.key});
@@ -73,7 +74,7 @@ class _GamesGrid extends StatelessWidget {
       _GameData('Verse Order', Icons.sort, true),
       _GameData('Listen & Guess', Icons.headphones, false),
       _GameData('True or False', Icons.check_circle, true),
-      _GameData('Life Situations', Icons.psychology, false),
+      _GameData('Dharma Choices', Icons.psychology, true),
     ];
 
     return GridView.builder(
@@ -108,6 +109,9 @@ class _GameCard extends StatelessWidget {
                   break;
                 case 'True or False':
                   screen = const TrueFalseScreen();
+                  break;
+                case 'Dharma Choices':
+                  screen = const DharmaChoicesScreen();
                   break;
                 default:
                   screen = const ShlokaMatchScreen();
