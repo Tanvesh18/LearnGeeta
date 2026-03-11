@@ -196,7 +196,6 @@ class _GreetingSectionState extends State<_GreetingSection>
   void initState() {
     super.initState();
 
-    // 🔥 Fire animation
     _fireController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),
@@ -206,7 +205,6 @@ class _GreetingSectionState extends State<_GreetingSection>
       CurvedAnimation(parent: _fireController, curve: Curves.easeInOut),
     );
 
-    // 🌸 Flower animation
     _flowerController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 3),
@@ -231,69 +229,78 @@ class _GreetingSectionState extends State<_GreetingSection>
   @override
   Widget build(BuildContext context) {
     final hour = DateTime.now().hour;
+
     final baseGreeting = hour < 12
         ? 'Good Morning'
         : (hour < 17 ? 'Good Afternoon' : 'Good Evening');
 
     final displayName =
-        (widget.name != null && widget.name!.trim().isNotEmpty)
-            ? widget.name!.trim().split(' ').first
-            : '';
+    (widget.name != null && widget.name!.trim().isNotEmpty)
+        ? widget.name!.trim().split(' ').first
+        : '';
 
-    final greetingText = displayName.isEmpty
-        ? baseGreeting
-        : '$baseGreeting $displayName';
+    final greetingText =
+    displayName.isEmpty ? baseGreeting : '$baseGreeting $displayName';
 
     final isHighStreak = widget.streak >= 7;
 
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(
-                  greetingText,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                AnimatedBuilder(
-                  animation: _flowerController,
-                  builder: (context, child) {
-                    return Transform.translate(
-                      offset: Offset(0, _flowerFloat.value),
-                      child: Transform.rotate(
-                        angle: _flowerRotate.value,
-                        child: const Text(
-                          '🌸',
-                          style: TextStyle(fontSize: 22),
-                        ),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      greetingText,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
                       ),
-                    );
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'Keep walking the path of Dharma',
-              style: TextStyle(fontSize: 14),
-            ),
-          ],
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  AnimatedBuilder(
+                    animation: _flowerController,
+                    builder: (context, child) {
+                      return Transform.translate(
+                        offset: Offset(0, _flowerFloat.value),
+                        child: Transform.rotate(
+                          angle: _flowerRotate.value,
+                          child: const Text(
+                            '🌸',
+                            style: TextStyle(fontSize: 22),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'Keep walking the path of Dharma',
+                style: TextStyle(fontSize: 14),
+              ),
+            ],
+          ),
         ),
+
+        const SizedBox(width: 10),
+
         Container(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             color: AppColors.saffron.withOpacity(0.15),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               ScaleTransition(
                 scale: _fireScale,
@@ -301,12 +308,12 @@ class _GreetingSectionState extends State<_GreetingSection>
                   decoration: BoxDecoration(
                     boxShadow: isHighStreak
                         ? [
-                            BoxShadow(
-                              color: Colors.orangeAccent.withOpacity(0.6),
-                              blurRadius: 12,
-                              spreadRadius: 2,
-                            ),
-                          ]
+                      BoxShadow(
+                        color: Colors.orangeAccent.withOpacity(0.6),
+                        blurRadius: 12,
+                        spreadRadius: 2,
+                      ),
+                    ]
                         : [],
                   ),
                   child: Icon(
@@ -329,7 +336,6 @@ class _GreetingSectionState extends State<_GreetingSection>
     );
   }
 }
-
 class _JourneySection extends StatelessWidget {
   final int level;
   final int xp;

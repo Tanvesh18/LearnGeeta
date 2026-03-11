@@ -72,9 +72,9 @@ class _GamesGrid extends StatelessWidget {
     final games = [
       _GameData('Shloka Match', Icons.extension, true),
       _GameData('Verse Order', Icons.sort, true),
-      _GameData('Listen & Guess', Icons.headphones, false),
       _GameData('True or False', Icons.check_circle, true),
       _GameData('Dharma Choices', Icons.psychology, true),
+      _GameData('Listen & Guess', Icons.headphones, true),
     ];
 
     return GridView.builder(

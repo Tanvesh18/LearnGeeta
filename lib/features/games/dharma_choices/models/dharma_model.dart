@@ -81,7 +81,7 @@ class GameState {
 const List<LifeSituation> situationDatabase = [
   // BEGINNER LEVEL
   LifeSituation(
-    title: '😞 Stress About Results',
+    title: 'Stress About Results',
     scenario:
         'You studied hard for an exam but didn\'t get the result you wanted. You feel disappointed and demotivated. What do you do?',
     choices: [
@@ -100,7 +100,7 @@ const List<LifeSituation> situationDatabase = [
     difficulty: 'beginner',
   ),
   LifeSituation(
-    title: '😠 Feeling Angry',
+    title: 'Feeling Angry',
     scenario:
         'A friend said something hurtful to you. You feel angry and want to retaliate. How should you respond?',
     choices: [
@@ -122,7 +122,7 @@ const List<LifeSituation> situationDatabase = [
     difficulty: 'beginner',
   ),
   LifeSituation(
-    title: '😴 Lack of Motivation',
+    title: 'Lack of Motivation',
     scenario:
         'You need to work on an important project, but you lack motivation. Everything feels pointless. What should you do?',
     choices: [
@@ -145,7 +145,7 @@ const List<LifeSituation> situationDatabase = [
   ),
   // INTERMEDIATE LEVEL
   LifeSituation(
-    title: '🤝 Conflict with a Friend',
+    title: 'Conflict with a Friend',
     scenario:
         'Your best friend made a mistake that hurt you. They don\'t realize what they did wrong. How should you approach this?',
     choices: [
@@ -167,7 +167,7 @@ const List<LifeSituation> situationDatabase = [
     difficulty: 'intermediate',
   ),
   LifeSituation(
-    title: '🎯 Pressure to Succeed',
+    title: 'Pressure to Succeed',
     scenario:
         'Everyone expects you to become very successful. You feel immense pressure. How do you handle this?',
     choices: [
@@ -195,7 +195,7 @@ const List<LifeSituation> situationDatabase = [
     difficulty: 'intermediate',
   ),
   LifeSituation(
-    title: '💔 Jealousy of Others',
+    title: 'Jealousy of Others',
     scenario:
         'Your colleague got a promotion you wanted. You feel jealous and resentful. What should you do?',
     choices: [
@@ -218,7 +218,7 @@ const List<LifeSituation> situationDatabase = [
   ),
   // ADVANCED LEVEL
   LifeSituation(
-    title: '⚖️ Duty vs Desire',
+    title: 'Duty vs Desire',
     scenario:
         'You have a responsibility to your family, but your personal desire is completely different. You\'re torn between the two. What\'s the right choice?',
     choices: [
@@ -243,7 +243,7 @@ const List<LifeSituation> situationDatabase = [
     difficulty: 'advanced',
   ),
   LifeSituation(
-    title: '🌀 Loss and Detachment',
+    title: ' Loss and Detachment',
     scenario:
         'You lost something very important to you—a job, a relationship, or a dream. You\'re devastated. How should you accept this?',
     choices: [
@@ -268,7 +268,7 @@ const List<LifeSituation> situationDatabase = [
     difficulty: 'advanced',
   ),
   LifeSituation(
-    title: '🧠 Ego and Humility',
+    title: ' Ego and Humility',
     scenario:
         'You achieved something great and people are praising you. You feel proud and superior. How should you respond?',
     choices: [
