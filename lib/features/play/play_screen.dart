@@ -74,7 +74,6 @@ class _GamesGrid extends StatelessWidget {
       _GameData('Verse Order', Icons.sort, true),
       _GameData('True or False', Icons.check_circle, true),
       _GameData('Dharma Choices', Icons.psychology, true),
-      _GameData('Listen & Guess', Icons.headphones, true),
     ];
 
     return GridView.builder(
@@ -99,75 +98,78 @@ class _GameCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: game.unlocked
-          ? () {
-              Widget screen;
-              switch (game.title) {
-                case 'Verse Order':
-                  screen = const VerseOrderScreen();
-                  break;
-                case 'True or False':
-                  screen = const TrueFalseScreen();
-                  break;
-                case 'Dharma Choices':
-                  screen = const DharmaChoicesScreen();
-                  break;
-                default:
-                  screen = const ShlokaMatchScreen();
-              }
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => screen),
-              );
-            }
-          : null,
+    return Material(
+      color: Colors.white,
       borderRadius: BorderRadius.circular(16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    game.icon,
-                    size: 40,
-                    color: game.unlocked ? AppColors.saffron : Colors.grey,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    game.title,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: game.unlocked ? Colors.black : Colors.grey,
+      child: InkWell(
+        onTap: game.unlocked
+            ? () {
+                Widget screen;
+                switch (game.title) {
+                  case 'Verse Order':
+                    screen = const VerseOrderScreen();
+                    break;
+                  case 'True or False':
+                    screen = const TrueFalseScreen();
+                    break;
+                  case 'Dharma Choices':
+                    screen = const DharmaChoicesScreen();
+                    break;
+                  default:
+                    screen = const ShlokaMatchScreen();
+                }
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => screen),
+                );
+              }
+            : null,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      game.icon,
+                      size: 40,
+                      color: game.unlocked ? AppColors.saffron : Colors.grey,
                     ),
-                  ),
-                ],
-              ),
-            ),
-            if (!game.unlocked)
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.85),
-                  borderRadius: BorderRadius.circular(16),
+                    const SizedBox(height: 12),
+                    Text(
+                      game.title,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: game.unlocked ? Colors.black : Colors.grey,
+                      ),
+                    ),
+                  ],
                 ),
-                child: const Center(child: Icon(Icons.lock, size: 32)),
               ),
-          ],
+              if (!game.unlocked)
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.85),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Center(child: Icon(Icons.lock, size: 32)),
+                ),
+            ],
+          ),
         ),
       ),
     );
