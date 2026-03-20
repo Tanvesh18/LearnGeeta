@@ -63,7 +63,7 @@ class _SignupScreenState extends State<SignupScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Text(
-                  '🕉️ Join LearnGeeta',
+                  'Join LearnGeeta',
                   style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.bold,

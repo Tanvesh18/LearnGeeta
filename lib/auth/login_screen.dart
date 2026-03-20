@@ -61,7 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Text(
-                  '🕉️ LearnGeeta',
+                  'LearnGeeta',
                   style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.bold,
