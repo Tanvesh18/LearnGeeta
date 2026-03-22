@@ -4,6 +4,9 @@ import '../games/shloka_match/shloka_match_screen.dart';
 import '../games/verse_order/verse_order_screen.dart';
 import '../games/true_false/true_false_screen.dart';
 import '../games/dharma_choices/dharma_choices_screen.dart';
+import '../games/krishna_says/krishna_says_screen.dart';
+import '../games/shloka_speedrun/shloka_speedrun_screen.dart';
+import '../games/karma_path/karma_path_screen.dart';
 
 class PlayScreen extends StatelessWidget {
   const PlayScreen({super.key});
@@ -74,6 +77,9 @@ class _GamesGrid extends StatelessWidget {
       _GameData('Verse Order', Icons.sort, true),
       _GameData('True or False', Icons.check_circle, true),
       _GameData('Dharma Choices', Icons.psychology, true),
+      _GameData('Krishna Says', Icons.lightbulb, true),
+      _GameData('Shloka Speed Run', Icons.flash_on, true),
+      _GameData('Karma Path', Icons.fork_left, true),
     ];
 
     return GridView.builder(
@@ -114,6 +120,15 @@ class _GameCard extends StatelessWidget {
                     break;
                   case 'Dharma Choices':
                     screen = const DharmaChoicesScreen();
+                    break;
+                  case 'Krishna Says':
+                    screen = const KrishnaSaysScreen();
+                    break;
+                  case 'Shloka Speed Run':
+                    screen = const ShlokaSpeedRunScreen();
+                    break;
+                  case 'Karma Path':
+                    screen = const KarmaPathScreen();
                     break;
                   default:
                     screen = const ShlokaMatchScreen();
