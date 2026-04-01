@@ -36,6 +36,38 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> _forgotPassword() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      setState(() => _error = 'Please enter your email address first');
+      return;
+    }
+
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      await _authService.resetPassword(email: email);
+      setState(() => _error = null);
+
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Password reset email sent! Check your inbox.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() => _error = 'Failed to send reset email. Please try again.');
+    } finally {
+      setState(() => _loading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -62,10 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 const Text(
                   'LearnGeeta',
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 6),
                 const Text(
@@ -74,15 +103,34 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                _InputField(
-                  controller: _emailController,
-                  label: 'Email',
-                ),
+                _InputField(controller: _emailController, label: 'Email'),
                 const SizedBox(height: 16),
                 _InputField(
                   controller: _passwordController,
                   label: 'Password',
                   obscure: true,
+                ),
+
+                const SizedBox(height: 8),
+
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: _loading ? null : _forgotPassword,
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(0, 0),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(
+                      'Forgot Password?',
+                      style: TextStyle(
+                        color: AppColors.saffron,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
                 ),
 
                 const SizedBox(height: 20),
@@ -133,9 +181,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) => const SignupScreen(),
-                      ),
+                      MaterialPageRoute(builder: (_) => const SignupScreen()),
                     );
                   },
                   child: const Text('Create an account'),

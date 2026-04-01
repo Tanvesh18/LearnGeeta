@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'models/karma_path_model.dart';
@@ -36,7 +37,7 @@ class _KarmaPathScreenState extends State<KarmaPathScreen> {
           level: 1,
           score: 0,
           currentKarma: 0,
-          currentNodeId: 'start',
+          currentNodeId: _getRandomStartNode(),
         );
       }
     } else {
@@ -44,7 +45,7 @@ class _KarmaPathScreenState extends State<KarmaPathScreen> {
         level: 1,
         score: 0,
         currentKarma: 0,
-        currentNodeId: 'start',
+        currentNodeId: _getRandomStartNode(),
       );
     }
 
@@ -53,6 +54,19 @@ class _KarmaPathScreenState extends State<KarmaPathScreen> {
     setState(() {
       isReady = true;
     });
+  }
+
+  String _getRandomStartNode() {
+    final startNodes = [
+      'start1',
+      'start2',
+      'start3',
+      'start4',
+      'start5',
+      'start',
+    ];
+    final random = Random();
+    return startNodes[random.nextInt(startNodes.length)];
   }
 
   void _loadCurrentNode() {
@@ -242,7 +256,7 @@ class _KarmaPathScreenState extends State<KarmaPathScreen> {
       level: 1,
       score: gameState.score + 1,
       currentKarma: 0,
-      currentNodeId: 'start',
+      currentNodeId: _getRandomStartNode(),
     );
 
     await _saveGameState();

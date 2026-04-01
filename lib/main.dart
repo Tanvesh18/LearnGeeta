@@ -14,6 +14,15 @@ Future<void> main() async {
     anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
   );
 
+  // Handle password reset deep links
+  Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+    final event = data.event;
+    if (event == AuthChangeEvent.passwordRecovery) {
+      // Navigate to reset password screen when user clicks reset link
+      // This will be handled by the AuthGate based on the auth state
+    }
+  });
+
   runApp(const LearnGeetaApp());
 }
 

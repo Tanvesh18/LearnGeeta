@@ -29,9 +29,7 @@ class AuthService {
         'email': email,
       });
 
-      await _client.from('progress').insert({
-        'user_id': user.id,
-      });
+      await _client.from('progress').insert({'user_id': user.id});
     } catch (e) {
       print('SIGNUP ERROR: $e');
       rethrow;
@@ -39,17 +37,36 @@ class AuthService {
   }
 
   /// ✅ THIS METHOD WAS MISSING
-  Future<void> signIn({
-    required String email,
-    required String password,
-  }) async {
-    await _client.auth.signInWithPassword(
-      email: email,
-      password: password,
-    );
+  Future<void> signIn({required String email, required String password}) async {
+    await _client.auth.signInWithPassword(email: email, password: password);
+  }
+
+  Future<void> resetPassword({required String email}) async {
+    try {
+      await _client.auth.resetPasswordForEmail(
+        email,
+        redirectTo: 'io.supabase.flutter://reset-callback',
+      );
+    } catch (e) {
+      print('RESET PASSWORD ERROR: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> updatePassword(String newPassword) async {
+    try {
+      await _client.auth.updateUser(UserAttributes(password: newPassword));
+    } catch (e) {
+      print('UPDATE PASSWORD ERROR: $e');
+      rethrow;
+    }
   }
 
   Future<void> signOut() async {
     await _client.auth.signOut();
+  }
+
+  User? getCurrentUser() {
+    return _client.auth.currentUser;
   }
 }
