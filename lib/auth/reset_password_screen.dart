@@ -18,7 +18,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
   bool _loading = false;
   String? _error;
-  PasswordStrength _passwordStrength = PasswordStrength.weak;
 
   @override
   void initState() {
@@ -35,38 +34,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   }
 
   void _updatePasswordStrength() {
-    final password = _passwordController.text;
-    setState(() {
-      _passwordStrength = _calculatePasswordStrength(password);
-    });
-  }
-
-  PasswordStrength _calculatePasswordStrength(String password) {
-    if (password.isEmpty) return PasswordStrength.weak;
-
-    int score = 0;
-
-    // Length check
-    if (password.length >= 8) score++;
-    if (password.length >= 12) score++;
-
-    // Character variety
-    if (RegExp(r'[a-z]').hasMatch(password)) score++;
-    if (RegExp(r'[A-Z]').hasMatch(password)) score++;
-    if (RegExp(r'[0-9]').hasMatch(password)) score++;
-    if (RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(password)) score++;
-
-    // Complexity checks
-    if (!RegExp(r'(.)\1{2,}').hasMatch(password))
-      score++; // No repeated characters
-    if (!RegExp(
-      r'(?:012|123|234|345|456|567|678|789|abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz)',
-    ).hasMatch(password.toLowerCase()))
-      score++; // No sequential
-
-    if (score >= 8) return PasswordStrength.strong;
-    if (score >= 5) return PasswordStrength.medium;
-    return PasswordStrength.weak;
+    setState(() {});
   }
 
   bool _obscurePassword = true;
@@ -91,45 +59,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     if (score <= 2) return PasswordStrength.weak;
     if (score <= 4) return PasswordStrength.medium;
     return PasswordStrength.strong;
-  }
-
-  String _getPasswordStrengthText(PasswordStrength strength) {
-    switch (strength) {
-      case PasswordStrength.none:
-        return '';
-      case PasswordStrength.weak:
-        return 'Weak';
-      case PasswordStrength.medium:
-        return 'Medium';
-      case PasswordStrength.strong:
-        return 'Strong';
-    }
-  }
-
-  Color _getPasswordStrengthColor(PasswordStrength strength) {
-    switch (strength) {
-      case PasswordStrength.none:
-        return Colors.grey;
-      case PasswordStrength.weak:
-        return Colors.red;
-      case PasswordStrength.medium:
-        return Colors.orange;
-      case PasswordStrength.strong:
-        return Colors.green;
-    }
-  }
-
-  double _getPasswordStrengthValue(PasswordStrength strength) {
-    switch (strength) {
-      case PasswordStrength.none:
-        return 0.0;
-      case PasswordStrength.weak:
-        return 0.33;
-      case PasswordStrength.medium:
-        return 0.66;
-      case PasswordStrength.strong:
-        return 1.0;
-    }
   }
 
   Future<void> _updatePassword() async {
@@ -262,7 +191,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
+                  color: Colors.black.withValues(alpha: 0.08),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
@@ -285,9 +214,11 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.1),
+                    color: Colors.blue.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                    border: Border.all(
+                      color: Colors.blue.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: const Text(
                     '💡 Tip: Choose a password different from your previous one for better security.',
