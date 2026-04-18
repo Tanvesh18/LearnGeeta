@@ -18,10 +18,7 @@ class AppTheme {
         fontWeight: FontWeight.bold,
         color: AppColors.deepBrown,
       ),
-      bodyMedium: TextStyle(
-        fontSize: 16,
-        color: AppColors.deepBrown,
-      ),
+      bodyMedium: TextStyle(fontSize: 16, color: AppColors.deepBrown),
     ),
 
     useMaterial3: true,

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'core/theme/app_theme.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import 'auth/auth_gate.dart';
+import 'core/theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,15 +14,6 @@ Future<void> main() async {
     url: dotenv.env['SUPABASE_URL']!,
     anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
   );
-
-  // Handle password reset deep links
-  Supabase.instance.client.auth.onAuthStateChange.listen((data) {
-    final event = data.event;
-    if (event == AuthChangeEvent.passwordRecovery) {
-      // Navigate to reset password screen when user clicks reset link
-      // This will be handled by the AuthGate based on the auth state
-    }
-  });
 
   runApp(const LearnGeetaApp());
 }

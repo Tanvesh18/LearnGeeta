@@ -1,66 +1,114 @@
 import 'package:flutter/material.dart';
-import '../../core/constants/colors.dart';
-import '../games/shloka_match/shloka_match_screen.dart';
-import '../games/verse_order/verse_order_screen.dart';
-import '../games/true_false/true_false_screen.dart';
-import '../games/dharma_choices/dharma_choices_screen.dart';
-import '../games/krishna_says/krishna_says_screen.dart';
-import '../games/shloka_speedrun/shloka_speedrun_screen.dart';
-import '../games/karma_path/karma_path_screen.dart';
 
-class PlayScreen extends StatelessWidget {
-  const PlayScreen({super.key});
+import '../../core/app_dependencies.dart';
+import '../../core/constants/colors.dart';
+import '../../core/models/game_definition.dart';
+import '../../core/widgets/app_gradient_scaffold.dart';
+import 'play_controller.dart';
+
+class PlayScreen extends StatefulWidget {
+  const PlayScreen({super.key, PlayController? controller})
+    : _controller = controller;
+
+  final PlayController? _controller;
+
+  @override
+  State<PlayScreen> createState() => _PlayScreenState();
+}
+
+class _PlayScreenState extends State<PlayScreen> {
+  late final PlayController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget._controller != null) {
+      _controller = widget._controller!;
+      _controller.load();
+    } else {
+      _controller = PlayController(
+        progressRepository: AppDependencies.progressRepository,
+        progressSyncNotifier: AppDependencies.progressSyncNotifier,
+      )..load();
+    }
+  }
+
+  @override
+  void dispose() {
+    if (widget._controller == null) {
+      _controller.dispose();
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Play & Learn'), centerTitle: true),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            _XPOverview(),
-            SizedBox(height: 20),
-            Text(
-              'Games',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        return AppGradientScaffold(
+          appBar: AppBar(title: const Text('Play & Learn'), centerTitle: true),
+          body: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _XPOverview(
+                  level: _controller.progress.level,
+                  xp: _controller.progress.xp,
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Games',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                Expanded(
+                  child: _controller.isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : _GamesGrid(
+                          games: _controller.games,
+                          level: _controller.progress.level,
+                        ),
+                ),
+              ],
             ),
-            SizedBox(height: 12),
-            Expanded(child: _GamesGrid()),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
 
 class _XPOverview extends StatelessWidget {
-  const _XPOverview();
+  const _XPOverview({required this.level, required this.xp});
+
+  final int level;
+  final int xp;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.saffron.withOpacity(0.15),
+        color: const Color.fromARGB(255, 255, 255, 255),
         borderRadius: BorderRadius.circular(16),
       ),
-      child: const Row(
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              const Text(
                 'Your Progress',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 4),
-              Text('Level 1 • 0 XP'),
+              const SizedBox(height: 4),
+              Text('Level $level • $xp XP'),
             ],
           ),
-          Icon(Icons.auto_graph, size: 32, color: AppColors.saffron),
+          const Icon(Icons.auto_graph, size: 32, color: AppColors.saffron),
         ],
       ),
     );
@@ -68,20 +116,13 @@ class _XPOverview extends StatelessWidget {
 }
 
 class _GamesGrid extends StatelessWidget {
-  const _GamesGrid();
+  const _GamesGrid({required this.games, required this.level});
+
+  final List<GameDefinition> games;
+  final int level;
 
   @override
   Widget build(BuildContext context) {
-    final games = [
-      _GameData('Shloka Match', Icons.extension, true),
-      _GameData('Verse Order', Icons.sort, true),
-      _GameData('True or False', Icons.check_circle, true),
-      _GameData('Dharma Choices', Icons.psychology, true),
-      _GameData('Krishna Says', Icons.lightbulb, true),
-      _GameData('Shloka Speed Run', Icons.flash_on, true),
-      _GameData('Karma Path', Icons.fork_left, true),
-    ];
-
     return GridView.builder(
       itemCount: games.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -91,51 +132,31 @@ class _GamesGrid extends StatelessWidget {
         childAspectRatio: 1,
       ),
       itemBuilder: (context, index) {
-        return _GameCard(game: games[index]);
+        return _GameCard(game: games[index], level: level);
       },
     );
   }
 }
 
 class _GameCard extends StatelessWidget {
-  final _GameData game;
+  const _GameCard({required this.game, required this.level});
 
-  const _GameCard({required this.game});
+  final GameDefinition game;
+  final int level;
 
   @override
   Widget build(BuildContext context) {
+    final unlocked = game.isUnlocked(level);
+
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
-        onTap: game.unlocked
+        onTap: unlocked
             ? () {
-                Widget screen;
-                switch (game.title) {
-                  case 'Verse Order':
-                    screen = const VerseOrderScreen();
-                    break;
-                  case 'True or False':
-                    screen = const TrueFalseScreen();
-                    break;
-                  case 'Dharma Choices':
-                    screen = const DharmaChoicesScreen();
-                    break;
-                  case 'Krishna Says':
-                    screen = const KrishnaSaysScreen();
-                    break;
-                  case 'Shloka Speed Run':
-                    screen = const ShlokaSpeedRunScreen();
-                    break;
-                  case 'Karma Path':
-                    screen = const KarmaPathScreen();
-                    break;
-                  default:
-                    screen = const ShlokaMatchScreen();
-                }
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => screen),
+                  MaterialPageRoute(builder: game.builder),
                 );
               }
             : null,
@@ -145,7 +166,7 @@ class _GameCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 8,
                 offset: const Offset(0, 4),
               ),
@@ -161,7 +182,7 @@ class _GameCard extends StatelessWidget {
                     Icon(
                       game.icon,
                       size: 40,
-                      color: game.unlocked ? AppColors.saffron : Colors.grey,
+                      color: unlocked ? AppColors.saffron : Colors.grey,
                     ),
                     const SizedBox(height: 12),
                     Text(
@@ -169,16 +190,16 @@ class _GameCard extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: game.unlocked ? Colors.black : Colors.grey,
+                        color: unlocked ? Colors.black : Colors.grey,
                       ),
                     ),
                   ],
                 ),
               ),
-              if (!game.unlocked)
+              if (!unlocked)
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.85),
+                    color: Colors.white.withValues(alpha: 0.85),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: const Center(child: Icon(Icons.lock, size: 32)),
@@ -189,12 +210,4 @@ class _GameCard extends StatelessWidget {
       ),
     );
   }
-}
-
-class _GameData {
-  final String title;
-  final IconData icon;
-  final bool unlocked;
-
-  _GameData(this.title, this.icon, this.unlocked);
 }

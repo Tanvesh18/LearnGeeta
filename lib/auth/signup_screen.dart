@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
-import '../auth/auth_service.dart';
-import '../core/constants/colors.dart';
 
-enum PasswordStrength { none, weak, medium, strong }
+import '../core/app_dependencies.dart';
+import '../core/constants/colors.dart';
+import '../core/widgets/app_gradient_scaffold.dart';
+import '../core/utils/password_utils.dart';
+import '../core/widgets/app_primary_button.dart';
+import '../core/widgets/app_text_input.dart';
+import '../core/widgets/auth_card.dart';
+import '../core/widgets/password_feedback.dart';
+import 'auth_controller.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -12,409 +18,128 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _authService = AuthService();
-
-  bool _loading = false;
-  String? _error;
+  late final AuthController _controller;
 
   @override
   void initState() {
     super.initState();
-    _passwordController.addListener(_updatePasswordStrength);
+    _controller = AuthController(
+      authRepository: AppDependencies.authRepository,
+      profileRepository: AppDependencies.profileRepository,
+      progressRepository: AppDependencies.progressRepository,
+    );
   }
 
   @override
   void dispose() {
-    _passwordController.removeListener(_updatePasswordStrength);
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
-  void _updatePasswordStrength() {
-    setState(() {});
-  }
-
   Future<void> _signup() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
+    FocusScope.of(context).unfocus();
+    if (!_formKey.currentState!.validate()) return;
 
-    try {
-      await _authService.signUp(
-        name: _nameController.text.trim(),
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
-      Navigator.pop(context); // Back to login
-    } catch (e) {
-      setState(() => _error = 'Unable to create account');
-    } finally {
-      setState(() => _loading = false);
-    }
-  }
+    final success = await _controller.signUp(
+      name: _nameController.text.trim(),
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+    );
+    if (!mounted || !success) return;
 
-  PasswordStrength _getPasswordStrength(String password) {
-    if (password.isEmpty) return PasswordStrength.none;
-
-    int score = 0;
-
-    // Length check
-    if (password.length >= 8) score++;
-
-    // Character variety checks
-    if (RegExp(r'[A-Z]').hasMatch(password)) score++;
-    if (RegExp(r'[a-z]').hasMatch(password)) score++;
-    if (RegExp(r'[0-9]').hasMatch(password)) score++;
-    if (RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(password)) score++;
-
-    // Security checks (negative scoring)
-    if (RegExp(r'(.)\1{3,}').hasMatch(password)) score--; // Repeated characters
-    if (RegExp(
-      r'(?:012|123|234|345|456|567|678|789|abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz)',
-    ).hasMatch(password.toLowerCase()))
-      score--; // Sequential
-
-    if (score >= 5) return PasswordStrength.strong;
-    if (score >= 3) return PasswordStrength.medium;
-    if (score >= 1) return PasswordStrength.weak;
-    return PasswordStrength.none;
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.cream,
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Container(
-            width: 380,
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Join LearnGeeta',
-                  style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Begin your journey with the Gita',
-                  style: TextStyle(color: Colors.grey),
-                ),
-                const SizedBox(height: 24),
+    final password = _passwordController.text;
 
-                _InputField(controller: _nameController, label: 'Full Name'),
-                const SizedBox(height: 16),
-                _InputField(controller: _emailController, label: 'Email'),
-                const SizedBox(height: 16),
-                _InputField(
-                  controller: _passwordController,
-                  label: 'Password',
-                  obscure: true,
-                ),
-                const SizedBox(height: 8),
-                // Password strength indicator
-                if (_passwordController.text.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  _PasswordStrengthIndicator(
-                    strength: _getPasswordStrength(_passwordController.text),
+    return AppGradientScaffold(
+      body: AnimatedBuilder(
+        animation: Listenable.merge([_controller, _passwordController]),
+        builder: (context, _) {
+          return AuthCard(
+            title: 'Join LearnGeeta',
+            subtitle: 'Begin your journey with the Gita',
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AppTextInput(
+                    controller: _nameController,
+                    label: 'Full Name',
+                    textInputAction: TextInputAction.next,
+                    validator: (value) =>
+                        (value == null || value.trim().isEmpty)
+                        ? 'Please enter your name'
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+                  AppTextInput(
+                    controller: _emailController,
+                    label: 'Email',
+                    keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.next,
+                    validator: (value) {
+                      final text = value?.trim() ?? '';
+                      if (text.isEmpty) return 'Please enter your email';
+                      if (!text.contains('@')) return 'Enter a valid email';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  AppTextInput(
+                    controller: _passwordController,
+                    label: 'Password',
+                    obscureText: true,
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: (_) => _signup(),
+                    validator: (value) => PasswordUtils.validate(
+                      value?.trim() ?? '',
+                      email: _emailController.text.trim(),
+                    ).errorMessage,
                   ),
                   const SizedBox(height: 8),
-                  _PasswordRequirements(password: _passwordController.text),
-                ],
-                const SizedBox(height: 16),
-
-                if (_error != null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Text(
-                      _error!,
-                      style: const TextStyle(color: Colors.red),
+                  if (password.isNotEmpty) ...[
+                    PasswordStrengthIndicator(
+                      strength: PasswordUtils.strengthFor(password),
                     ),
-                  ),
-
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _loading ? null : _signup,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.saffron,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                    const SizedBox(height: 8),
+                    PasswordRequirements(password: password),
+                  ],
+                  const SizedBox(height: 16),
+                  if (_controller.errorMessage != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Text(
+                        _controller.errorMessage!,
+                        style: const TextStyle(color: Colors.red),
+                        textAlign: TextAlign.center,
                       ),
                     ),
-                    child: _loading
-                        ? const SizedBox(
-                            height: 18,
-                            width: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Text(
-                            'Create Account',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
+                  AppPrimaryButton(
+                    label: 'Create Account',
+                    onPressed: _signup,
+                    isLoading: _controller.isLoading,
                   ),
-                ),
-
-                const SizedBox(height: 12),
-
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Already have an account? Login'),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Password Strength Indicator Widget
-class _PasswordStrengthIndicator extends StatelessWidget {
-  final PasswordStrength strength;
-
-  const _PasswordStrengthIndicator({required this.strength});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: LinearProgressIndicator(
-                value: _getStrengthValue(),
-                backgroundColor: Colors.grey.shade300,
-                valueColor: AlwaysStoppedAnimation<Color>(_getStrengthColor()),
-                borderRadius: BorderRadius.circular(4),
+                  const SizedBox(height: 12),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Already have an account? Login'),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(width: 12),
-            Text(
-              _getStrengthText(),
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: _getStrengthColor(),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  double _getStrengthValue() {
-    switch (strength) {
-      case PasswordStrength.none:
-        return 0.0;
-      case PasswordStrength.weak:
-        return 0.33;
-      case PasswordStrength.medium:
-        return 0.66;
-      case PasswordStrength.strong:
-        return 1.0;
-    }
-  }
-
-  Color _getStrengthColor() {
-    switch (strength) {
-      case PasswordStrength.none:
-        return Colors.grey;
-      case PasswordStrength.weak:
-        return Colors.red;
-      case PasswordStrength.medium:
-        return Colors.orange;
-      case PasswordStrength.strong:
-        return Colors.green;
-    }
-  }
-
-  String _getStrengthText() {
-    switch (strength) {
-      case PasswordStrength.none:
-        return 'None';
-      case PasswordStrength.weak:
-        return 'Weak';
-      case PasswordStrength.medium:
-        return 'Medium';
-      case PasswordStrength.strong:
-        return 'Strong';
-    }
-  }
-}
-
-/// Password Requirements Checklist Widget
-class _PasswordRequirements extends StatelessWidget {
-  final String password;
-
-  const _PasswordRequirements({required this.password});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Password Requirements:',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey.shade700,
-            ),
-          ),
-          const SizedBox(height: 8),
-          _RequirementItem(
-            text: 'At least 8 characters',
-            isMet: password.length >= 8,
-          ),
-          _RequirementItem(
-            text: 'Contains uppercase letter (A-Z)',
-            isMet: RegExp(r'[A-Z]').hasMatch(password),
-          ),
-          _RequirementItem(
-            text: 'Contains lowercase letter (a-z)',
-            isMet: RegExp(r'[a-z]').hasMatch(password),
-          ),
-          _RequirementItem(
-            text: 'Contains number (0-9)',
-            isMet: RegExp(r'[0-9]').hasMatch(password),
-          ),
-          _RequirementItem(
-            text: 'Contains special character (!@#\$%^&*)',
-            isMet: RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(password),
-          ),
-          _RequirementItem(
-            text: 'No 4+ repeated characters',
-            isMet: !RegExp(r'(.)\1{3,}').hasMatch(password),
-          ),
-          _RequirementItem(
-            text: 'No sequential characters (abc, 123)',
-            isMet: !RegExp(
-              r'(?:012|123|234|345|456|567|678|789|abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz)',
-            ).hasMatch(password.toLowerCase()),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Individual Requirement Item Widget
-class _RequirementItem extends StatelessWidget {
-  final String text;
-  final bool isMet;
-
-  const _RequirementItem({required this.text, required this.isMet});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(
-          isMet ? Icons.check_circle : Icons.radio_button_unchecked,
-          size: 16,
-          color: isMet ? Colors.green : Colors.grey,
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: 11,
-              color: isMet ? Colors.green.shade700 : Colors.grey.shade600,
-              decoration: isMet ? TextDecoration.lineThrough : null,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// Reusable input field (same as Login)
-class _InputField extends StatefulWidget {
-  final TextEditingController controller;
-  final String label;
-  final bool obscure;
-
-  const _InputField({
-    required this.controller,
-    required this.label,
-    this.obscure = false,
-  });
-
-  @override
-  State<_InputField> createState() => _InputFieldState();
-}
-
-class _InputFieldState extends State<_InputField> {
-  late bool _obscureText;
-
-  @override
-  void initState() {
-    super.initState();
-    _obscureText = widget.obscure;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: widget.controller,
-      obscureText: _obscureText,
-      decoration: InputDecoration(
-        labelText: widget.label,
-        filled: true,
-        fillColor: AppColors.softGrey,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
-        ),
-        suffixIcon: widget.obscure
-            ? IconButton(
-                icon: Icon(
-                  _obscureText ? Icons.visibility_off : Icons.visibility,
-                ),
-                onPressed: () {
-                  setState(() {
-                    _obscureText = !_obscureText;
-                  });
-                },
-              )
-            : null,
+          );
+        },
       ),
     );
   }

@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../core/app_dependencies.dart';
 import 'models/krishna_says_model.dart';
 
 class KrishnaSaysScreen extends StatefulWidget {
@@ -18,6 +20,7 @@ class _KrishnaSaysScreenState extends State<KrishnaSaysScreen>
   bool isReady = false;
   bool answered = false;
   bool isCorrect = false;
+  int _lastEarnedXp = 0;
   int? selectedIndex;
   late AnimationController _animationController;
   late AnimationController _resultAnimationController;
@@ -101,7 +104,8 @@ class _KrishnaSaysScreenState extends State<KrishnaSaysScreen>
       isCorrect = index == currentQuestion.correctOptionIndex;
 
       if (isCorrect) {
-        gameState.score += 10;
+        _lastEarnedXp = 10;
+        gameState.score += _lastEarnedXp;
         gameState.streak++;
         if (gameState.streak > gameState.maxStreak) {
           gameState.maxStreak = gameState.streak;
@@ -109,7 +113,9 @@ class _KrishnaSaysScreenState extends State<KrishnaSaysScreen>
         if (gameState.streak % 3 == 0) {
           gameState.level = (gameState.level % 5) + 1;
         }
+        unawaited(AppDependencies.xpService.awardXp(_lastEarnedXp));
       } else {
+        _lastEarnedXp = 0;
         gameState.streak = 0;
       }
 
@@ -202,7 +208,7 @@ class _KrishnaSaysScreenState extends State<KrishnaSaysScreen>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'XP Earned: ${isCorrect ? '+10' : '+0'}',
+                      'XP Earned: ${isCorrect ? '+$_lastEarnedXp' : '+0'}',
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     Text(

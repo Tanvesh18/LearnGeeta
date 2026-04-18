@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:confetti/confetti.dart';
 
+import '../../../core/app_dependencies.dart';
 import 'models/true_false_model.dart';
 
 class TrueFalseScreen extends StatefulWidget {
@@ -104,6 +105,7 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
         );
         result = 'Correct 🎉';
         _confettiController.play();
+        unawaited(AppDependencies.xpService.awardXp(points));
       } else {
         streak = 0;
         gameState = gameState.copyWith(streak: 0);

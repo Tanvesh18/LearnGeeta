@@ -1,22 +1,62 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import '../../core/constants/colors.dart';
-import '../profile/profile_service.dart';
-import '../profile/profile_screen.dart';
-import '../play/play_screen.dart';
 
-/// Shloka pool for "Shloka of the Day" — changes each time home loads (e.g. on login)
+import '../../core/app_dependencies.dart';
+import '../../core/constants/colors.dart';
+import '../../core/models/game_definition.dart';
+import '../../core/widgets/app_gradient_scaffold.dart';
+import '../learn/gita_reader_screen.dart';
+import '../play/play_registry.dart';
+import '../play/play_screen.dart';
+import '../profile/profile_screen.dart';
+import 'home_controller.dart';
+
 const List<({String sanskrit, String meaning})> _shlokaPool = [
-  (sanskrit: 'कर्मण्येवाधिकारस्ते मा फलेषु कदाचन ।', meaning: 'You have the right to perform your duty, but not to the fruits of your actions.'),
-  (sanskrit: 'योगस्थः कुरु कर्माणि सङ्गं त्यक्त्वा धनञ्जय ।', meaning: 'Be steadfast in yoga, perform actions, abandoning attachment.'),
-  (sanskrit: 'न हि ज्ञानेन सदृशं पवित्रमिह विद्यते ।', meaning: 'In this world, nothing purifies like true knowledge.'),
-  (sanskrit: 'उद्धरेदात्मनाऽऽत्मानं नात्मानमवसादयेत् ।', meaning: 'Lift yourself by your own mind; do not degrade yourself.'),
-  (sanskrit: 'श्रद्धावान् लभते ज्ञानं तत्परः संयतेन्द्रियः ।', meaning: 'The faithful, devoted and self-controlled attain true wisdom.'),
-  (sanskrit: 'समः शत्रौ च मित्रे च तथा मानापमानयोः ।', meaning: 'See friend and enemy, honour and dishonour, with equal vision.'),
-  (sanskrit: 'वासांसि जीर्णानि यथा विहाय नवानि गृह्णाति नरोऽपराणि ।', meaning: 'As a person casts off worn-out garments and puts on new ones, so the soul casts off worn-out bodies.'),
-  (sanskrit: 'आत्मैव ह्यात्मनो बन्धुरात्मैव रिपुरात्मनः ।', meaning: 'The self is the friend of the self; the self is also the enemy of the self.'),
-  (sanskrit: 'यदा यदा हि धर्मस्य ग्लानिर्भवति भारत ।', meaning: 'Whenever righteousness declines and unrighteousness rises, I manifest Myself.'),
-  (sanskrit: 'कर्मण्येवाधिकारस्ते मा फलेषु कदाचन मा कर्मफलहेतुर्भूः ।', meaning: 'Focus on action alone, never on its fruits; do not let the fruits be your motive.'),
+  (
+    sanskrit: 'कर्मण्येवाधिकारस्ते मा फलेषु कदाचन ।',
+    meaning:
+        'You have the right to perform your duty, but not to the fruits of your actions.',
+  ),
+  (
+    sanskrit: 'योगस्थः कुरु कर्माणि सङ्गं त्यक्त्वा धनञ्जय ।',
+    meaning: 'Be steadfast in yoga, perform actions, abandoning attachment.',
+  ),
+  (
+    sanskrit: 'न हि ज्ञानेन सदृशं पवित्रमिह विद्यते ।',
+    meaning: 'In this world, nothing purifies like true knowledge.',
+  ),
+  (
+    sanskrit: 'उद्धरेदात्मनाऽत्मानं नात्मानमवसादयेत् ।',
+    meaning: 'Lift yourself by your own mind; do not degrade yourself.',
+  ),
+  (
+    sanskrit: 'श्रद्धावान् लभते ज्ञानं तत्परः संयतेन्द्रियः ।',
+    meaning: 'The faithful, devoted, and self-controlled attain true wisdom.',
+  ),
+  (
+    sanskrit: 'समः शत्रौ च मित्रे च तथा मानापमानयोः ।',
+    meaning: 'See friend and enemy, honor and dishonor, with equal vision.',
+  ),
+  (
+    sanskrit: 'वासांसि जीर्णानि यथा विहाय नवानि गृह्णाति नरोऽपराणि ।',
+    meaning:
+        'As a person casts off worn-out garments and puts on new ones, so the soul casts off worn-out bodies.',
+  ),
+  (
+    sanskrit: 'आत्मैव ह्यात्मनो बन्धुरात्मैव रिपुरात्मनः ।',
+    meaning:
+        'The self is the friend of the self; the self is also the enemy of the self.',
+  ),
+  (
+    sanskrit: 'यदा यदा हि धर्मस्य ग्लानिर्भवति भारत ।',
+    meaning:
+        'Whenever righteousness declines and unrighteousness rises, I manifest myself.',
+  ),
+  (
+    sanskrit: 'कर्मण्येवाधिकारस्ते मा फलेषु कदाचन मा कर्मफलहेतुर्भूः ।',
+    meaning:
+        'Focus on action alone, never on its fruits; do not let the fruits be your motive.',
+  ),
 ];
 
 class HomeScreen extends StatefulWidget {
@@ -27,31 +67,31 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _streak = 0;
-  bool _loading = true;
-  String? _userName;
-  int _level = 1;
-  int _xp = 0;
-  ({String sanskrit, String meaning})? _shlokaOfDay;
+  late final HomeController _controller;
   late FlutterTts _flutterTts;
+  ({String sanskrit, String meaning})? _shlokaOfDay;
 
   @override
   void initState() {
     super.initState();
+    _controller = HomeController(
+      profileRepository: AppDependencies.profileRepository,
+      progressRepository: AppDependencies.progressRepository,
+      progressSyncNotifier: AppDependencies.progressSyncNotifier,
+    )..load();
     _flutterTts = FlutterTts();
-    // Deterministic "shloka of the day" based on calendar date
+
     final today = DateTime.now();
-    final daySeed = DateTime(today.year, today.month, today.day)
-        .millisecondsSinceEpoch ~/
+    final daySeed =
+        DateTime(today.year, today.month, today.day).millisecondsSinceEpoch ~/
         const Duration(days: 1).inMilliseconds;
-    final index = daySeed % _shlokaPool.length;
-    _shlokaOfDay = _shlokaPool[index];
-    _initStreak();
+    _shlokaOfDay = _shlokaPool[daySeed % _shlokaPool.length];
   }
 
   @override
   void dispose() {
     _flutterTts.stop();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -61,18 +101,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Playing shloka...')),
-      );
-
-      // Basic settings; you can tweak pitch/speed later
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Playing shloka...')));
       await _flutterTts.stop();
-      await _flutterTts.setLanguage('en-IN'); // English voice for meaning
+      await _flutterTts.setLanguage('en-IN');
       await _flutterTts.setSpeechRate(0.6);
       await _flutterTts.setPitch(1.0);
-      // Speak the English meaning so it works reliably on Windows
       await _flutterTts.speak(shloka.meaning);
-    } catch (e) {
+    } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -82,166 +119,138 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _initStreak() async {
-    try {
-      final service = ProfileService();
-      // Fetch profile to get the user's name
-      final data = await service.fetchProfile();
-      final profile = data['profile'] as Map<String, dynamic>;
-       final progress = data['progress'] as Map<String, dynamic>;
-      final fullName = (profile['full_name'] as String?)?.trim();
-
-      final streak = await service.updateDailyStreak();
-
-      setState(() {
-        _streak = streak;
-        _userName = fullName;
-        _level = (progress['level'] as int?) ?? 1;
-        _xp = (progress['xp'] as int?) ?? 0;
-      });
-    } catch (e) {
-      // silently fail for now
-    }
-    setState(() => _loading = false);
-  }
-
   @override
   Widget build(BuildContext context) {
-    if (_loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        if (_controller.isLoading || _shlokaOfDay == null) {
+          return AppGradientScaffold(
+            body: const Center(child: CircularProgressIndicator()),
+          );
+        }
 
-    final shloka = _shlokaOfDay;
-    if (shloka == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
+        final progress = _controller.progress;
+        final profile = _controller.profile;
+        final shloka = _shlokaOfDay!;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('LearnGeeta'),
-        centerTitle: true,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
-                );
-              },
-              child: CircleAvatar(
-                radius: 16,
-                backgroundColor: AppColors.saffron.withOpacity(0.2),
-                child: Text(
-                  (_userName != null && _userName!.trim().isNotEmpty)
-                      ? _userName!.trim().characters.first.toUpperCase()
-                      : '🕉️',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
+        return AppGradientScaffold(
+          appBar: AppBar(
+            title: const Text(
+              "LearnGeeta",
+              style: TextStyle(
+                color: Color.fromARGB(255, 255, 255, 255),
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            centerTitle: true,
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(2), // border thickness
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: const Color.fromARGB(255, 255, 255, 255),
+                        width: 2,
+                      ),
+                    ),
+                    child: CircleAvatar(
+                      radius: 16,
+                      backgroundColor: AppColors.saffron.withValues(alpha: 0.2),
+                      child: Text(
+                        (profile?.fullName.trim().isNotEmpty ?? false)
+                            ? profile!.fullName
+                                  .trim()
+                                  .characters
+                                  .first
+                                  .toUpperCase()
+                            : 'ॐ',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
+            ],
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _GreetingSection(
+                  streak: progress?.streak ?? 0,
+                  name: profile?.fullName,
+                ),
+                const SizedBox(height: 20),
+                _JourneySection(
+                  level: progress?.level ?? 1,
+                  xp: progress?.xp ?? 0,
+                  streak: progress?.streak ?? 0,
+                ),
+                const SizedBox(height: 20),
+                _ShlokaCard(
+                  sanskrit: shloka.sanskrit,
+                  meaning: shloka.meaning,
+                  onListen: _speakCurrentShloka,
+                ),
+                const SizedBox(height: 20),
+                _ActionButtons(level: progress?.level ?? 1),
+              ],
             ),
           ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _GreetingSection(streak: _streak, name: _userName),
-            const SizedBox(height: 20),
-            _JourneySection(level: _level, xp: _xp, streak: _streak),
-            const SizedBox(height: 20),
-            _ShlokaCard(
-              sanskrit: shloka.sanskrit,
-              meaning: shloka.meaning,
-              onListen: _speakCurrentShloka,
-            ),
-            const SizedBox(height: 20),
-            _ActionButtons(level: _level),
-          ],
-        ),
-      ),
+        );
+      },
     );
   }
 }
+
 class _GreetingSection extends StatefulWidget {
+  const _GreetingSection({required this.streak, this.name});
+
   final int streak;
   final String? name;
-
-  const _GreetingSection({required this.streak, this.name});
 
   @override
   State<_GreetingSection> createState() => _GreetingSectionState();
 }
 
-class _GreetingSectionState extends State<_GreetingSection>
-    with TickerProviderStateMixin {
-  late AnimationController _fireController;
-  late Animation<double> _fireScale;
-
-  late AnimationController _flowerController;
-  late Animation<double> _flowerFloat;
-  late Animation<double> _flowerRotate;
-
+class _GreetingSectionState extends State<_GreetingSection> {
   @override
   void initState() {
     super.initState();
-
-    _fireController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    )..repeat(reverse: true);
-
-    _fireScale = Tween<double>(begin: 1.0, end: 1.15).animate(
-      CurvedAnimation(parent: _fireController, curve: Curves.easeInOut),
-    );
-
-    _flowerController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 3),
-    )..repeat(reverse: true);
-
-    _flowerFloat = Tween<double>(begin: -2, end: 2).animate(
-      CurvedAnimation(parent: _flowerController, curve: Curves.easeInOut),
-    );
-
-    _flowerRotate = Tween<double>(begin: -0.05, end: 0.05).animate(
-      CurvedAnimation(parent: _flowerController, curve: Curves.easeInOut),
-    );
   }
 
   @override
   void dispose() {
-    _fireController.dispose();
-    _flowerController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final hour = DateTime.now().hour;
-
     final baseGreeting = hour < 12
         ? 'Good Morning'
         : (hour < 17 ? 'Good Afternoon' : 'Good Evening');
-
-    final displayName =
-    (widget.name != null && widget.name!.trim().isNotEmpty)
+    final displayName = (widget.name != null && widget.name!.trim().isNotEmpty)
         ? widget.name!.trim().split(' ').first
         : '';
-
-    final greetingText =
-    displayName.isEmpty ? baseGreeting : '$baseGreeting $displayName';
-
+    final greetingText = displayName.isEmpty
+        ? baseGreeting
+        : '$baseGreeting $displayName';
     final isHighStreak = widget.streak >= 7;
 
     return Row(
@@ -264,22 +273,6 @@ class _GreetingSectionState extends State<_GreetingSection>
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const SizedBox(width: 6),
-                  AnimatedBuilder(
-                    animation: _flowerController,
-                    builder: (context, child) {
-                      return Transform.translate(
-                        offset: Offset(0, _flowerFloat.value),
-                        child: Transform.rotate(
-                          angle: _flowerRotate.value,
-                          child: const Text(
-                            '🌸',
-                            style: TextStyle(fontSize: 22),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
                 ],
               ),
               const SizedBox(height: 4),
@@ -290,41 +283,16 @@ class _GreetingSectionState extends State<_GreetingSection>
             ],
           ),
         ),
-
         const SizedBox(width: 10),
-
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: AppColors.saffron.withOpacity(0.15),
+            color: AppColors.saffron.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ScaleTransition(
-                scale: _fireScale,
-                child: Container(
-                  decoration: BoxDecoration(
-                    boxShadow: isHighStreak
-                        ? [
-                      BoxShadow(
-                        color: Colors.orangeAccent.withOpacity(0.6),
-                        blurRadius: 12,
-                        spreadRadius: 2,
-                      ),
-                    ]
-                        : [],
-                  ),
-                  child: Icon(
-                    Icons.local_fire_department,
-                    color: isHighStreak
-                        ? Colors.orangeAccent
-                        : AppColors.saffron,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 4),
               Text(
                 '${widget.streak} Day Streak',
                 style: const TextStyle(fontWeight: FontWeight.bold),
@@ -336,16 +304,17 @@ class _GreetingSectionState extends State<_GreetingSection>
     );
   }
 }
-class _JourneySection extends StatelessWidget {
-  final int level;
-  final int xp;
-  final int streak;
 
+class _JourneySection extends StatelessWidget {
   const _JourneySection({
     required this.level,
     required this.xp,
     required this.streak,
   });
+
+  final int level;
+  final int xp;
+  final int streak;
 
   @override
   Widget build(BuildContext context) {
@@ -363,7 +332,7 @@ class _JourneySection extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -374,10 +343,7 @@ class _JourneySection extends StatelessWidget {
         children: [
           const Text(
             'Your Journey',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           Row(
@@ -395,7 +361,9 @@ class _JourneySection extends StatelessWidget {
               value: progress,
               minHeight: 8,
               backgroundColor: AppColors.softGrey,
-              valueColor: AlwaysStoppedAnimation<Color>(AppColors.saffron),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                AppColors.saffron,
+              ),
             ),
           ),
           const SizedBox(height: 4),
@@ -414,30 +382,24 @@ class _JourneySection extends StatelessWidget {
       children: [
         Text(
           value,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
-        Text(
-          label,
-          style: const TextStyle(fontSize: 12, color: Colors.grey),
-        ),
+        Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
       ],
     );
   }
 }
 
 class _ShlokaCard extends StatelessWidget {
-  final String sanskrit;
-  final String meaning;
-  final VoidCallback onListen;
-
   const _ShlokaCard({
     required this.sanskrit,
     required this.meaning,
     required this.onListen,
   });
+
+  final String sanskrit;
+  final String meaning;
+  final VoidCallback onListen;
 
   @override
   Widget build(BuildContext context) {
@@ -449,7 +411,7 @@ class _ShlokaCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -459,32 +421,23 @@ class _ShlokaCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            '🕉️ Shloka of the Day',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+            'Om Shloka of the Day',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           Text(
             sanskrit,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-            ),
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
-          Text(
-            meaning,
-            style: const TextStyle(fontSize: 14),
-          ),
+          Text(meaning, style: const TextStyle(fontSize: 14)),
           const SizedBox(height: 12),
           InkWell(
             borderRadius: BorderRadius.circular(8),
             onTap: onListen,
             child: Row(
               children: [
-                Icon(Icons.volume_up, color: AppColors.saffron),
+                const Icon(Icons.volume_up, color: AppColors.saffron),
                 const SizedBox(width: 6),
                 Text(
                   'Listen',
@@ -501,19 +454,27 @@ class _ShlokaCard extends StatelessWidget {
     );
   }
 }
+
 class _ActionButtons extends StatelessWidget {
-  final int level;
   const _ActionButtons({required this.level});
+
+  final int level;
 
   @override
   Widget build(BuildContext context) {
-    final String todaysGameTitle;
+    final GameDefinition todaysGame;
     if (level <= 2) {
-      todaysGameTitle = 'True or False';
+      todaysGame = GameRegistry.games.firstWhere(
+        (game) => game.id == 'true_false',
+      );
     } else if (level <= 4) {
-      todaysGameTitle = 'Shloka Match';
+      todaysGame = GameRegistry.games.firstWhere(
+        (game) => game.id == 'shloka_match',
+      );
     } else {
-      todaysGameTitle = 'Verse Order';
+      todaysGame = GameRegistry.games.firstWhere(
+        (game) => game.id == 'verse_order',
+      );
     }
 
     return Column(
@@ -521,17 +482,22 @@ class _ActionButtons extends StatelessWidget {
         _ActionButton(
           icon: Icons.menu_book,
           title: 'Continue Learning',
-          subtitle: 'Chapter 12 • Bhakti Yoga',
-          color: AppColors.saffron,
-          onTap: () {},
+          subtitle: 'Read the Bhagavad Gita',
+          color: Colors.white,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const GitaReaderScreen()),
+            );
+          },
         ),
         const SizedBox(height: 12),
         _TodayGoalCard(level: level),
         const SizedBox(height: 12),
         _ActionButton(
           icon: Icons.videogame_asset,
-          title: 'Play Today’s Game',
-          subtitle: todaysGameTitle,
+          title: 'Play Today\'s Game',
+          subtitle: todaysGame.title,
           color: AppColors.gold,
           onTap: () {
             Navigator.push(
@@ -546,12 +512,6 @@ class _ActionButtons extends StatelessWidget {
 }
 
 class _ActionButton extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final Color color;
-  final VoidCallback onTap;
-
   const _ActionButton({
     required this.icon,
     required this.title,
@@ -559,6 +519,12 @@ class _ActionButton extends StatelessWidget {
     required this.color,
     required this.onTap,
   });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -568,12 +534,16 @@ class _ActionButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.15),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
           children: [
-            Icon(icon, size: 32, color: color),
+            Icon(
+              icon,
+              size: 32,
+              color: color == Colors.white ? AppColors.saffron : color,
+            ),
             const SizedBox(width: 16),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -597,13 +567,12 @@ class _ActionButton extends StatelessWidget {
 }
 
 class _TodayGoalCard extends StatelessWidget {
-  final int level;
-
   const _TodayGoalCard({required this.level});
+
+  final int level;
 
   @override
   Widget build(BuildContext context) {
-    // Simple, level-aware goal text for now
     final String goalText;
     if (level <= 2) {
       goalText = 'Play 1 True or False game';
@@ -617,28 +586,30 @@ class _TodayGoalCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.gold.withOpacity(0.12),
+        color: const Color.fromARGB(255, 255, 255, 255),
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          const Text(
-            'Today’s Goal',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
+          Icon(Icons.flag, size: 32, color: AppColors.saffron),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Today\'s Goal',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                Text(goalText, style: const TextStyle(fontSize: 14)),
+                const SizedBox(height: 4),
+                const Text(
+                  'Progress tracking coming soon',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            goalText,
-            style: const TextStyle(fontSize: 14),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Progress tracking coming soon ✨',
-            style: TextStyle(fontSize: 12, color: Colors.grey),
           ),
         ],
       ),

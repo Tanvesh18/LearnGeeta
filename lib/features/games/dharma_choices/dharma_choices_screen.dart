@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:confetti/confetti.dart';
+import '../../../core/app_dependencies.dart';
 import 'models/dharma_model.dart';
 
 class DharmaChoicesScreen extends StatefulWidget {
@@ -18,6 +19,7 @@ class _DharmaChoicesScreenState extends State<DharmaChoicesScreen> {
   int? selectedChoiceIndex;
   bool hasAnswered = false;
   bool isCorrect = false;
+  int _lastEarnedXp = 0;
 
   late ConfettiController _confettiController;
   final Set<String> _seenSituations = {};
@@ -89,6 +91,7 @@ class _DharmaChoicesScreenState extends State<DharmaChoicesScreen> {
 
       if (correct) {
         int points = 15 + (gameState.streak >= 3 ? 10 : 0);
+        _lastEarnedXp = points;
         gameState = gameState.copyWith(
           score: gameState.score + points,
           streak: gameState.streak + 1,
@@ -96,7 +99,9 @@ class _DharmaChoicesScreenState extends State<DharmaChoicesScreen> {
           level: gameState.level + 1,
         );
         _confettiController.play();
+        unawaited(AppDependencies.xpService.awardXp(points));
       } else {
+        _lastEarnedXp = 0;
         gameState = gameState.copyWith(streak: 0);
       }
     });
@@ -130,7 +135,7 @@ class _DharmaChoicesScreenState extends State<DharmaChoicesScreen> {
                 const SizedBox(height: 20),
                 if (isCorrect)
                   Text(
-                    '+${15 + (gameState.streak >= 3 ? 10 : 0)} XP earned',
+                    '+$_lastEarnedXp XP earned',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

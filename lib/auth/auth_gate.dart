@@ -1,33 +1,52 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../core/app_dependencies.dart';
+import '../core/widgets/app_gradient_scaffold.dart';
 import '../navigation/bottom_nav.dart';
+import 'auth_session_controller.dart';
 import 'login_screen.dart';
 import 'reset_password_screen.dart';
 
-class AuthGate extends StatelessWidget {
+class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<AuthState>(
-      stream: Supabase.instance.client.auth.onAuthStateChange,
-      builder: (context, snapshot) {
-        final session = Supabase.instance.client.auth.currentSession;
-        final event = snapshot.data?.event;
+  State<AuthGate> createState() => _AuthGateState();
+}
 
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
+class _AuthGateState extends State<AuthGate> {
+  late final AuthSessionController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AuthSessionController(
+      authRepository: AppDependencies.authRepository,
+    )..initialize();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        if (_controller.isLoading) {
+          return const AppGradientScaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         }
 
-        // Handle password recovery event
-        if (event == AuthChangeEvent.passwordRecovery) {
+        if (_controller.isPasswordRecovery) {
           return const ResetPasswordScreen();
         }
 
-        if (session == null) {
+        if (_controller.session == null) {
           return const LoginScreen();
         }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
+import '../../../core/app_dependencies.dart';
 import '../../../core/constants/colors.dart';
 import 'models/shloka_model.dart';
 
@@ -18,6 +19,7 @@ class _ShlokaMatchScreenState extends State<ShlokaMatchScreen> {
   String? selectedMeaning;
   bool hasAnswered = false;
   bool isCorrect = false;
+  int _lastEarnedXp = 0;
   int remainingSeconds = 30;
   Timer? _timer;
 
@@ -123,6 +125,7 @@ class _ShlokaMatchScreenState extends State<ShlokaMatchScreen> {
       if (currentShloka!.difficulty == 'hard') points += 5;
       if (gameState.streak >= 3) points += 5;
       if (gameState.streak >= 5) points += 10;
+      _lastEarnedXp = points;
 
       gameState = gameState.copyWith(
         score: gameState.score + points,
@@ -130,8 +133,10 @@ class _ShlokaMatchScreenState extends State<ShlokaMatchScreen> {
         maxStreak: max(gameState.streak + 1, gameState.maxStreak),
         level: gameState.level + 1,
       );
+      unawaited(AppDependencies.xpService.awardXp(points));
     } else {
       // Wrong match - reset streak
+      _lastEarnedXp = 0;
       gameState = gameState.copyWith(streak: 0);
     }
 
@@ -163,6 +168,13 @@ class _ShlokaMatchScreenState extends State<ShlokaMatchScreen> {
             Text('English: ${currentShloka!.englishMeaning}'),
             const SizedBox(height: 8),
             Text('Hindi: ${currentShloka!.hindiMeaning}'),
+            if (isCorrect) ...[
+              const SizedBox(height: 12),
+              Text(
+                '+$_lastEarnedXp XP earned',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
             if (!isCorrect) ...[
               const SizedBox(height: 12),
               Text(

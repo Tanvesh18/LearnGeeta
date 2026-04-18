@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../core/app_dependencies.dart';
 import 'models/karma_path_model.dart';
 
 class KarmaPathScreen extends StatefulWidget {
@@ -17,6 +19,7 @@ class _KarmaPathScreenState extends State<KarmaPathScreen> {
   bool isReady = false;
   bool isEnding = false;
   GameEnding? endingCard;
+  int _lastEndingXp = 0;
 
   @override
   void initState() {
@@ -116,6 +119,19 @@ class _KarmaPathScreenState extends State<KarmaPathScreen> {
   }
 
   void _makeChoice(StoryChoice choice) async {
+    final nextNode = storyTree[choice.nextNodeId];
+    final choiceXp = choice.karmaValue > 0 ? 8 + (choice.karmaValue * 2) : 0;
+    final endingXp = nextNode?.isEnding == true
+        ? (gameState.currentKarma + choice.karmaValue >= 8
+              ? 25
+              : gameState.currentKarma + choice.karmaValue >= 3
+              ? 18
+              : gameState.currentKarma + choice.karmaValue >= 0
+              ? 10
+              : 0)
+        : 0;
+    _lastEndingXp = endingXp;
+
     // Update game state
     setState(() {
       gameState.currentKarma += choice.karmaValue;
@@ -125,6 +141,7 @@ class _KarmaPathScreenState extends State<KarmaPathScreen> {
     });
 
     await _saveGameState();
+    unawaited(AppDependencies.xpService.awardXp(choiceXp + endingXp));
     _loadCurrentNode();
   }
 
@@ -228,6 +245,13 @@ class _KarmaPathScreenState extends State<KarmaPathScreen> {
                   ],
                 ),
               ),
+              if (_lastEndingXp > 0) ...[
+                const SizedBox(height: 16),
+                Text(
+                  'Ending bonus: +$_lastEndingXp XP',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
             ],
           ),
         ),

@@ -5,6 +5,7 @@ import 'package:confetti/confetti.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 import 'dart:math';
+import '../../../core/app_dependencies.dart';
 import '../../../core/constants/colors.dart';
 import 'models/verse_model.dart';
 
@@ -25,6 +26,7 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
   int remainingSeconds = 30;
   bool isAnswerChecked = false;
   bool isAnswerCorrect = false;
+  int _lastEarnedXp = 0;
   bool isCheckButtonDisabled = false;
   bool showAnswer = false;
   late ConfettiController _confettiController;
@@ -167,6 +169,7 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
         if (gameState.streak >= 5) {
           points += 10;
         }
+        _lastEarnedXp = points;
 
         gameState = gameState.copyWith(
           score: gameState.score + points,
@@ -176,7 +179,9 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
         );
 
         _confettiController.play();
+        unawaited(AppDependencies.xpService.awardXp(points));
       } else {
+        _lastEarnedXp = 0;
         HapticFeedback.vibrate();
         _shakeController.forward().then((_) {
           _shakeController.reverse();
@@ -193,7 +198,7 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
     _showFeedbackDialog(
       title: isCorrect ? 'Correct! 🎉' : 'Incorrect ❌',
       message: isCorrect
-          ? 'Well done! +${10 + (currentVerse.difficulty == 'hard' ? 5 : 0)} points'
+          ? 'Well done! +$_lastEarnedXp XP'
           : 'Try again! -2 points',
       isCorrect: isCorrect,
     );

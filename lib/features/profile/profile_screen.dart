@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
-import 'profile_service.dart';
+
+import '../../core/app_dependencies.dart';
+import '../../core/constants/colors.dart';
+import '../../core/widgets/app_gradient_scaffold.dart';
+import '../../core/widgets/app_primary_button.dart';
+import '../../core/widgets/app_text_input.dart';
+import 'profile_controller.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -9,58 +15,53 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final _service = ProfileService();
   final _nameController = TextEditingController();
-  String _language = 'English';
-
-  bool _loading = true;
-  int _level = 1;
-  int _xp = 0;
+  late final ProfileController _controller;
+  String? _lastShownError;
 
   @override
   void initState() {
     super.initState();
-    _load();
+    _controller = ProfileController(
+      profileRepository: AppDependencies.profileRepository,
+      progressRepository: AppDependencies.progressRepository,
+      authRepository: AppDependencies.authRepository,
+    )..addListener(_syncFromController);
+    _controller.load();
   }
 
-  Future<void> _load() async {
-    try {
-      final data = await _service.fetchProfile();
-      final profile = data['profile'];
-      final progress = data['progress'];
-
-      _nameController.text = profile['full_name'] ?? '';
-      _language = profile['language'] ?? 'English';
-      _level = progress['level'] ?? 1;
-      _xp = progress['xp'] ?? 0;
-    } catch (e) {
-      _showError(e.toString());
-    } finally {
-      setState(() => _loading = false);
+  void _syncFromController() {
+    final profile = _controller.profile;
+    if (profile == null) return;
+    if (_nameController.text != profile.fullName) {
+      _nameController.text = profile.fullName;
     }
+  }
+
+  @override
+  void dispose() {
+    _controller
+      ..removeListener(_syncFromController)
+      ..dispose();
+    _nameController.dispose();
+    super.dispose();
   }
 
   Future<void> _save() async {
-    try {
-      await _service.updateProfile(
-        fullName: _nameController.text.trim(),
-        language: _language,
-      );
+    final success = await _controller.save(
+      fullName: _nameController.text.trim(),
+      language: _controller.profile?.language ?? 'English',
+    );
+    if (!mounted) return;
+    if (success) {
       _showSnack('Profile updated');
-    } catch (e) {
-      _showError(e.toString());
     }
   }
 
-  void _logout() async {
-    await _service.signOut();
-    if (mounted) {
-      Navigator.of(context).popUntil((route) => route.isFirst);
-    }
-  }
-
-  void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  Future<void> _logout() async {
+    await _controller.signOut();
+    if (!mounted) return;
+    Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
   void _showSnack(String msg) {
@@ -69,68 +70,171 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        final error = _controller.errorMessage;
+        if (error != null &&
+            error != _lastShownError &&
+            !_controller.isLoading) {
+          _lastShownError = error;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              _showSnack(error);
+            }
+          });
+        }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-        actions: [
-          IconButton(icon: const Icon(Icons.logout), onPressed: _logout),
-        ],
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Colors.blue.shade50, Colors.purple.shade50],
+        if (_controller.isLoading) {
+          return const AppGradientScaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final profile = _controller.profile;
+        final progress = _controller.progress;
+
+        return AppGradientScaffold(
+          appBar: AppBar(
+            title: const Text('Profile'),
+            centerTitle: true,
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            foregroundColor: Colors.black87,
+            actions: [
+              IconButton(icon: const Icon(Icons.logout), onPressed: _logout),
+            ],
           ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // avatar and name
-              Center(
+          extendBodyBehindAppBar: true,
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppColors.cream,
+                  const Color.fromARGB(255, 255, 157, 0),
+                  Colors.white,
+                ],
+              ),
+            ),
+            child: SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    CircleAvatar(
-                      radius: 40,
-                      backgroundColor: Colors.grey.shade300,
-                      child: const Icon(
-                        Icons.person,
-                        size: 50,
-                        color: Colors.white,
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.96),
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.08),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 24,
+                      ),
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.saffron.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Text(
+                              'Your profile',
+                              style: TextStyle(
+                                color: AppColors.saffron,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          CircleAvatar(
+                            radius: 46,
+                            backgroundColor: AppColors.saffron.withOpacity(
+                              0.24,
+                            ),
+                            child: Text(
+                              profile?.fullName.isNotEmpty == true
+                                  ? profile!.fullName
+                                        .trim()
+                                        .characters
+                                        .first
+                                        .toUpperCase()
+                                  : 'ॐ',
+                              style: const TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.saffron,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            profile?.fullName.isNotEmpty == true
+                                ? profile!.fullName
+                                : 'Your Name',
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Grow your knowledge every day',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          Chip(
+                            backgroundColor: Colors.blue.shade50,
+                            label: Text(
+                              'Level ${progress?.level ?? 1}',
+                              style: const TextStyle(
+                                color: Colors.blueAccent,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            avatar: const Icon(
+                              Icons.star,
+                              color: Colors.blueAccent,
+                              size: 18,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    Text(
-                      _nameController.text.isEmpty
-                          ? 'Your Name'
-                          : _nameController.text,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    const SizedBox(height: 20),
+                    _statsCard(
+                      level: progress?.level ?? 1,
+                      xp: progress?.xp ?? 0,
                     ),
+                    const SizedBox(height: 20),
+                    _editCard(),
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
-              _statsCard(),
-              const SizedBox(height: 24),
-              _editCard(),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
-  Widget _statsCard() {
+  Widget _statsCard({required int level, required int xp}) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -139,8 +243,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _statWithIcon(Icons.star, 'Level', _level.toString()),
-            _statWithIcon(Icons.flash_on, 'XP', _xp.toString()),
+            _statWithIcon(Icons.star, 'Level', level.toString()),
+            _statWithIcon(Icons.flash_on, 'XP', xp.toString()),
           ],
         ),
       ),
@@ -164,46 +268,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _editCard() {
     return Card(
       elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TextField(
+            const Text(
+              'Profile settings',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Update your display name and keep your profile current.',
+              style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
+            ),
+            const SizedBox(height: 18),
+            AppTextInput(
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Full name',
-                prefixIcon: Icon(Icons.person),
-              ),
+              label: 'Full name',
+              textInputAction: TextInputAction.next,
             ),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              initialValue: _language,
-              decoration: const InputDecoration(
-                labelText: 'Language',
-                prefixIcon: Icon(Icons.language),
-              ),
-              items: const [
-                DropdownMenuItem(value: 'English', child: Text('English')),
-                DropdownMenuItem(value: 'Hindi', child: Text('Hindi')),
-                DropdownMenuItem(value: 'Marathi', child: Text('Marathi')),
-              ],
-              onChanged: (v) => setState(() => _language = v!),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                onPressed: _save,
-                child: const Text('Save changes'),
-              ),
+            const SizedBox(height: 24),
+            AppPrimaryButton(
+              label: 'Save changes',
+              onPressed: _save,
+              isLoading: _controller.isSaving,
             ),
           ],
         ),

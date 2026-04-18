@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
+import '../../../core/app_dependencies.dart';
 import 'models/shloka_speedrun_model.dart';
 
 class ShlokaSpeedRunScreen extends StatefulWidget {
@@ -111,9 +112,11 @@ class _ShlokaSpeedRunScreenState extends State<ShlokaSpeedRunScreen> {
           index == currentRound[currentQuestionIndex].correctOptionIndex;
 
       if (isCorrect) {
-        roundScore += (10 * gameState.comboMultiplier);
+        final earnedXp = 10 * gameState.comboMultiplier;
+        roundScore += earnedXp;
         roundCombo++;
         gameState.streak++;
+        unawaited(AppDependencies.xpService.awardXp(earnedXp));
 
         if (roundCombo % 5 == 0) {
           gameState.comboMultiplier = (gameState.comboMultiplier % 3) + 1;
@@ -260,7 +263,7 @@ class _ShlokaSpeedRunScreenState extends State<ShlokaSpeedRunScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Level: ${gameState.level}'),
-                  Text('Total XP: ${gameState.score}'),
+                  Text('Total Score: ${gameState.score}'),
                 ],
               ),
             ),
