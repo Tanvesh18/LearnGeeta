@@ -123,7 +123,7 @@ class _GitaReaderScreenState extends State<GitaReaderScreen> {
                     width: 50,
                     height: 50,
                     decoration: BoxDecoration(
-                      color: AppColors.saffron.withOpacity(0.2),
+                      color: AppColors.saffron.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Center(
@@ -151,9 +151,11 @@ class _GitaReaderScreenState extends State<GitaReaderScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          chapter.transliteration,
+                          chapter.nameTranslation.isNotEmpty
+                              ? chapter.nameTranslation
+                              : chapter.transliteration,
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: 13,
                             color: Colors.grey.shade600,
                           ),
                         ),
@@ -175,10 +177,10 @@ class _GitaReaderScreenState extends State<GitaReaderScreen> {
                   ),
                 ],
               ),
-              if (chapter.meaningEnglish.isNotEmpty) ...[
+              if (chapter.nameMeaning.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 Text(
-                  chapter.meaningEnglish,
+                  chapter.nameMeaning,
                   style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -194,41 +196,101 @@ class _GitaReaderScreenState extends State<GitaReaderScreen> {
   Widget _buildChapterDetail() {
     final chapter = _controller.selectedChapter!;
     final verses = _controller.currentChapterVerses;
-    final selectedVerse = _controller.selectedVerse;
 
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: _controller.clearSelection,
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      chapter.name,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: _controller.clearSelection,
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        chapter.name,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    Text(
-                      '${verses.length} verses',
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                  ],
+                      Text(
+                        chapter.nameTranslation,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      Text(
+                        '${verses.length} verses',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Chapter Summary
+          if (chapter.chapterSummary != null &&
+              chapter.chapterSummary!.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Card(
+                color: AppColors.saffron.withOpacity(0.08),
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Chapter Summary',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        chapter.chapterSummary!,
+                        style: const TextStyle(fontSize: 12, height: 1.5),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ],
+            ),
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Verses',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.saffron,
+                ),
+              ),
+            ),
           ),
-        ),
-        Expanded(child: _buildVersesList(verses)),
-      ],
+          const SizedBox(height: 12),
+          _buildVersesList(verses),
+        ],
+      ),
     );
   }
 
@@ -238,7 +300,9 @@ class _GitaReaderScreenState extends State<GitaReaderScreen> {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       itemCount: verses.length,
       itemBuilder: (context, index) {
         final verse = verses[index];
@@ -272,7 +336,7 @@ class _GitaReaderScreenState extends State<GitaReaderScreen> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.saffron.withOpacity(0.15),
+                          color: AppColors.saffron.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
@@ -305,11 +369,12 @@ class _GitaReaderScreenState extends State<GitaReaderScreen> {
                   ),
                   if (isSelected) ...[
                     const SizedBox(height: 12),
+                    // Meaning
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.saffron.withOpacity(0.1),
+                        color: AppColors.saffron.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Column(
@@ -330,20 +395,22 @@ class _GitaReaderScreenState extends State<GitaReaderScreen> {
                         ],
                       ),
                     ),
-                    if (verse.commentary != null) ...[
+                    // Word Meanings
+                    if (verse.wordMeanings != null &&
+                        verse.wordMeanings!.isNotEmpty) ...[
                       const SizedBox(height: 12),
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(0.05),
+                          color: Colors.green.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
-                              'Commentary',
+                              'Word Meanings',
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
@@ -351,9 +418,58 @@ class _GitaReaderScreenState extends State<GitaReaderScreen> {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              verse.commentary ?? '',
-                              style: const TextStyle(fontSize: 12),
+                              verse.wordMeanings!,
+                              style: const TextStyle(fontSize: 12, height: 1.5),
                             ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    // Translations
+                    if (verse.translations != null &&
+                        verse.translations!.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Translations',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            ...verse.translations!.map((trans) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      trans.author,
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      trans.text,
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
                           ],
                         ),
                       ),

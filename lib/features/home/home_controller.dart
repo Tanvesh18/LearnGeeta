@@ -6,6 +6,7 @@ import '../../core/utils/app_logger.dart';
 import '../profile/profile_repository.dart';
 import '../progress/progress_repository.dart';
 import '../progress/progress_sync_notifier.dart';
+import '../progress/xp_service.dart';
 
 typedef DailyShloka = ({String sanskrit, String meaning});
 
@@ -36,6 +37,12 @@ class HomeController extends ChangeNotifier {
 
   void _handleProgressChanged() {
     load();
+  }
+
+  LevelUpEvent? get lastLevelUpEvent => _progressSyncNotifier.lastLevelUpEvent;
+
+  void clearLevelUpEvent() {
+    _progressSyncNotifier.clearLevelUpEvent();
   }
 
   Future<void> load() async {

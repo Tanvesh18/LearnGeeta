@@ -4,7 +4,9 @@ import 'package:flutter_tts/flutter_tts.dart';
 import '../../core/app_dependencies.dart';
 import '../../core/constants/colors.dart';
 import '../../core/models/game_definition.dart';
+import '../../core/utils/xp_policy.dart';
 import '../../core/widgets/app_gradient_scaffold.dart';
+import '../../features/progress/xp_service.dart';
 import '../learn/gita_reader_screen.dart';
 import '../play/play_registry.dart';
 import '../play/play_screen.dart';
@@ -86,6 +88,11 @@ class _HomeScreenState extends State<HomeScreen> {
         DateTime(today.year, today.month, today.day).millisecondsSinceEpoch ~/
         const Duration(days: 1).inMilliseconds;
     _shlokaOfDay = _shlokaPool[daySeed % _shlokaPool.length];
+
+    // Check for level up event after initial load
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAndShowLevelUpDialog();
+    });
   }
 
   @override
@@ -124,6 +131,15 @@ class _HomeScreenState extends State<HomeScreen> {
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, _) {
+        // Check for level up events
+        final levelUpEvent = _controller.lastLevelUpEvent;
+        if (levelUpEvent != null) {
+          _controller.clearLevelUpEvent();
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _showLevelUpDialog(levelUpEvent);
+          });
+        }
+
         if (_controller.isLoading || _shlokaOfDay == null) {
           return AppGradientScaffold(
             body: const Center(child: CircularProgressIndicator()),
@@ -214,6 +230,72 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         );
       },
+    );
+  }
+
+  void _checkAndShowLevelUpDialog() {
+    final levelUpEvent = _controller.lastLevelUpEvent;
+    if (levelUpEvent != null) {
+      _controller.clearLevelUpEvent();
+      _showLevelUpDialog(levelUpEvent);
+    }
+  }
+
+  void _showLevelUpDialog(LevelUpEvent levelUpEvent) {
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'LEVEL UP! 🎉',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.saffron,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'You reached ${XpPolicy.titleForLevel(levelUpEvent.newLevel)}',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '+${levelUpEvent.xpGained} XP',
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.green,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.saffron,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text('Continue Your Journey'),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -323,6 +405,7 @@ class _JourneySection extends StatelessWidget {
     final progress = xpForNextLevel == 0
         ? 0.0
         : xpInCurrentLevel / xpForNextLevel;
+    final title = XpPolicy.titleForLevel(level);
 
     return Container(
       width: double.infinity,
@@ -349,22 +432,29 @@ class _JourneySection extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _journeyStat('Level', level.toString()),
+              _journeyStat('Level', '$level – $title'),
               _journeyStat('XP', xp.toString()),
               _journeyStat('Streak', '$streak days'),
             ],
           ),
           const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(999),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 8,
-              backgroundColor: AppColors.softGrey,
-              valueColor: const AlwaysStoppedAnimation<Color>(
-                AppColors.saffron,
-              ),
-            ),
+          TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 0.0, end: progress),
+            duration: const Duration(milliseconds: 800),
+            curve: Curves.easeOutCubic,
+            builder: (context, animatedProgress, child) {
+              return ClipRRect(
+                borderRadius: BorderRadius.circular(999),
+                child: LinearProgressIndicator(
+                  value: animatedProgress,
+                  minHeight: 8,
+                  backgroundColor: AppColors.softGrey,
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                    AppColors.saffron,
+                  ),
+                ),
+              );
+            },
           ),
           const SizedBox(height: 4),
           Text(

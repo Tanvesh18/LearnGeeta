@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../../core/models/game_definition.dart';
+import '../games/battlefield_debate/battlefield_debate_screen.dart';
+import '../games/chapter_quest/chapter_quest_screen.dart';
 import '../games/dharma_choices/dharma_choices_screen.dart';
 import '../games/karma_path/karma_path_screen.dart';
+import '../games/krishna_memory_cards/krishna_memory_cards_screen.dart';
+import '../games/missing_word_mantra/missing_word_mantra_screen.dart';
+import '../games/wheel_of_gunas/wheel_of_gunas_screen.dart';
 import '../games/krishna_says/krishna_says_screen.dart';
 import '../games/shloka_match/shloka_match_screen.dart';
 import '../games/shloka_speedrun/shloka_speedrun_screen.dart';
@@ -40,6 +45,41 @@ class GameRegistry {
       icon: Icons.psychology,
       isUnlocked: (_) => true,
       builder: (_) => const DharmaChoicesScreen(),
+    ),
+    GameDefinition(
+      id: 'missing_word_mantra',
+      title: 'Missing Word Mantra',
+      icon: Icons.edit,
+      isUnlocked: (_) => true,
+      builder: (_) => const MissingWordMantraScreen(),
+    ),
+    GameDefinition(
+      id: 'chapter_quest',
+      title: 'Chapter Quest',
+      icon: Icons.menu_book,
+      isUnlocked: (_) => true,
+      builder: (_) => const ChapterQuestScreen(),
+    ),
+    GameDefinition(
+      id: 'wheel_of_gunas',
+      title: 'Wheel of Gunas',
+      icon: Icons.rotate_right,
+      isUnlocked: (_) => true,
+      builder: (_) => const WheelOfGunasScreen(),
+    ),
+    GameDefinition(
+      id: 'krishna_memory_cards',
+      title: 'Krishna Memory Cards',
+      icon: Icons.memory,
+      isUnlocked: (_) => true,
+      builder: (_) => const KrishnaMemoryCardsScreen(),
+    ),
+    GameDefinition(
+      id: 'battlefield_debate',
+      title: 'Battlefield Debate',
+      icon: Icons.forum,
+      isUnlocked: (_) => true,
+      builder: (_) => const BattlefieldDebateScreen(),
     ),
     GameDefinition(
       id: 'krishna_says',

@@ -8,6 +8,16 @@ class XpPolicy {
     return (xp ~/ xpPerLevel) + 1;
   }
 
+  static String titleForLevel(int level) {
+    if (level >= 100) return 'Gita Guardian';
+    if (level >= 60) return 'Karma Master';
+    if (level >= 40) return 'Sage';
+    if (level >= 25) return 'Yogi';
+    if (level >= 15) return 'Disciple';
+    if (level >= 7) return 'Seeker';
+    return 'Beginner';
+  }
+
   static int trueFalse({
     required String difficulty,
     required int currentStreak,

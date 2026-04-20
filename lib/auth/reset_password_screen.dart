@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../core/app_dependencies.dart';
-import '../core/constants/colors.dart';
 import '../core/widgets/app_gradient_scaffold.dart';
 import '../core/utils/password_utils.dart';
 import '../core/widgets/app_primary_button.dart';
