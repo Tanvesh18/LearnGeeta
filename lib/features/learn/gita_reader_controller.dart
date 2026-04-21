@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/models/gita_models.dart';
 import '../../core/repositories/gita_repository.dart';
@@ -12,16 +13,18 @@ class GitaReaderController extends ChangeNotifier {
   GitaVerse? _selectedVerse;
   bool _isLoading = false;
   String? _errorMessage;
+  int? _lastChapter;
+  int? _lastVerse;
 
-  // Getters
   List<GitaChapter> get chapters => _chapters;
   List<GitaVerse> get currentChapterVerses => _currentChapterVerses;
   GitaChapter? get selectedChapter => _selectedChapter;
   GitaVerse? get selectedVerse => _selectedVerse;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+  int? get lastChapter => _lastChapter;
+  int? get lastVerse => _lastVerse;
 
-  /// Fetch all chapters
   Future<void> loadChapters() async {
     _isLoading = true;
     _errorMessage = null;
@@ -30,6 +33,7 @@ class GitaReaderController extends ChangeNotifier {
     try {
       _chapters = await _repository.fetchAllChapters();
       _errorMessage = null;
+      await _loadBookmark();
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
@@ -38,7 +42,21 @@ class GitaReaderController extends ChangeNotifier {
     }
   }
 
-  /// Select a chapter and load its verses
+  Future<void> _loadBookmark() async {
+    final prefs = await SharedPreferences.getInstance();
+    _lastChapter = prefs.getInt('gitaLastChapter');
+    _lastVerse = prefs.getInt('gitaLastVerse');
+    notifyListeners();
+  }
+
+  Future<void> _saveBookmark(int chapter, int verse) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('gitaLastChapter', chapter);
+    await prefs.setInt('gitaLastVerse', verse);
+    _lastChapter = chapter;
+    _lastVerse = verse;
+  }
+
   Future<void> selectChapter(int chapterNumber) async {
     _isLoading = true;
     _errorMessage = null;
@@ -46,9 +64,7 @@ class GitaReaderController extends ChangeNotifier {
 
     try {
       _selectedChapter = await _repository.fetchChapter(chapterNumber);
-      _currentChapterVerses = await _repository.fetchChapterVerses(
-        chapterNumber,
-      );
+      _currentChapterVerses = await _repository.fetchChapterVerses(chapterNumber);
       _selectedVerse = null;
       _errorMessage = null;
     } catch (e) {
@@ -59,13 +75,14 @@ class GitaReaderController extends ChangeNotifier {
     }
   }
 
-  /// Select a specific verse
-  void selectVerse(GitaVerse verse) {
+  Future<void> selectVerse(GitaVerse verse) async {
     _selectedVerse = verse;
+    if (_selectedChapter != null) {
+      await _saveBookmark(_selectedChapter!.chapterNumber, verse.verseNumber);
+    }
     notifyListeners();
   }
 
-  /// Clear selection
   void clearSelection() {
     _selectedChapter = null;
     _selectedVerse = null;

@@ -333,8 +333,6 @@ class _GreetingSectionState extends State<_GreetingSection> {
     final greetingText = displayName.isEmpty
         ? baseGreeting
         : '$baseGreeting $displayName';
-    final isHighStreak = widget.streak >= 7;
-
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -693,11 +691,6 @@ class _TodayGoalCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(goalText, style: const TextStyle(fontSize: 14)),
-                const SizedBox(height: 4),
-                const Text(
-                  'Progress tracking coming soon',
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                ),
               ],
             ),
           ),

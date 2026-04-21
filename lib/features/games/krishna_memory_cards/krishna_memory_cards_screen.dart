@@ -312,7 +312,7 @@ class _KrishnaMemoryCardsScreenState extends State<KrishnaMemoryCardsScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFFE8EAF6), Color(0xFFC5CAE9)],
+            colors: [AppColors.gradientStart, AppColors.gradientEnd],
           ),
         ),
         child: Stack(
@@ -331,7 +331,7 @@ class _KrishnaMemoryCardsScreenState extends State<KrishnaMemoryCardsScreen> {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: _timeLeft <= 10 ? Colors.red : Colors.blue,
+                          color: _timeLeft <= 10 ? Colors.red : AppColors.saffron,
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(
@@ -392,7 +392,7 @@ class _KrishnaMemoryCardsScreenState extends State<KrishnaMemoryCardsScreen> {
                 confettiController: _confettiController,
                 blastDirectionality: BlastDirectionality.explosive,
                 shouldLoop: false,
-                colors: const [Colors.blue, Colors.purple, Colors.indigo],
+                colors: const [AppColors.saffron, AppColors.gold, Colors.white],
               ),
             ),
           ],

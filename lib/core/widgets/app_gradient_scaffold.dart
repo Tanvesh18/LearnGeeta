@@ -31,15 +31,11 @@ class AppGradientScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.cream,
-            const Color.fromARGB(255, 255, 157, 0),
-            Colors.white,
-          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [AppColors.gradientStart, AppColors.gradientEnd],
         ),
       ),
       child: Scaffold(

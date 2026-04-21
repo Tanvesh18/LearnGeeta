@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 import '../../../core/app_dependencies.dart';
+import '../../../core/constants/colors.dart';
 import 'models/shloka_speedrun_model.dart';
 
 class ShlokaSpeedRunScreen extends StatefulWidget {
@@ -186,7 +187,7 @@ class _ShlokaSpeedRunScreenState extends State<ShlokaSpeedRunScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.purple.withOpacity(0.1),
+                color: AppColors.gradientStart,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
@@ -196,7 +197,7 @@ class _ShlokaSpeedRunScreenState extends State<ShlokaSpeedRunScreen> {
                     style: const TextStyle(
                       fontSize: 36,
                       fontWeight: FontWeight.bold,
-                      color: Colors.purple,
+                      color: AppColors.saffron,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -245,7 +246,7 @@ class _ShlokaSpeedRunScreenState extends State<ShlokaSpeedRunScreen> {
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Colors.orange,
+                        color: AppColors.saffron,
                       ),
                     ),
                     const Text(
@@ -260,7 +261,7 @@ class _ShlokaSpeedRunScreenState extends State<ShlokaSpeedRunScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.amber.withOpacity(0.2),
+                color: Colors.amber.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -299,7 +300,8 @@ class _ShlokaSpeedRunScreenState extends State<ShlokaSpeedRunScreen> {
       return Scaffold(
         appBar: AppBar(
           title: const Text('Shloka Speed Run'),
-          backgroundColor: Colors.orange.shade700,
+          backgroundColor: AppColors.saffron,
+          foregroundColor: Colors.white,
         ),
         body: const Center(child: CircularProgressIndicator()),
       );
@@ -309,7 +311,8 @@ class _ShlokaSpeedRunScreenState extends State<ShlokaSpeedRunScreen> {
       return Scaffold(
         appBar: AppBar(
           title: const Text('Shloka Speed Run'),
-          backgroundColor: Colors.orange.shade700,
+          backgroundColor: AppColors.saffron,
+          foregroundColor: Colors.white,
         ),
         body: const Center(child: Text('No questions available.')),
       );
@@ -321,7 +324,8 @@ class _ShlokaSpeedRunScreenState extends State<ShlokaSpeedRunScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Shloka Speed Run'),
-        backgroundColor: Colors.orange,
+        backgroundColor: AppColors.saffron,
+        foregroundColor: Colors.white,
         elevation: 0,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
@@ -339,11 +343,11 @@ class _ShlokaSpeedRunScreenState extends State<ShlokaSpeedRunScreen> {
         ),
       ),
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.orange.shade50, Colors.red.shade50],
+            colors: [AppColors.gradientStart, AppColors.gradientEnd],
           ),
         ),
         child: SafeArea(
@@ -371,7 +375,7 @@ class _ShlokaSpeedRunScreenState extends State<ShlokaSpeedRunScreen> {
                               'Combo: x${gameState.comboMultiplier}',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: Colors.orange,
+                                color: AppColors.saffron,
                               ),
                             ),
                           ],
@@ -384,7 +388,7 @@ class _ShlokaSpeedRunScreenState extends State<ShlokaSpeedRunScreen> {
                             minHeight: 8,
                             backgroundColor: Colors.grey.shade300,
                             valueColor: const AlwaysStoppedAnimation(
-                              Colors.orange,
+                              AppColors.saffron,
                             ),
                           ),
                         ),
@@ -401,11 +405,8 @@ class _ShlokaSpeedRunScreenState extends State<ShlokaSpeedRunScreen> {
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.orange.shade600,
-                              Colors.red.shade600,
-                            ],
+                          gradient: const LinearGradient(
+                            colors: [AppColors.saffron, AppColors.deepBrown],
                           ),
                         ),
                         child: Column(
@@ -448,9 +449,9 @@ class _ShlokaSpeedRunScreenState extends State<ShlokaSpeedRunScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.purple.withOpacity(0.2),
+                        color: AppColors.gradientEnd,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.purple.shade300),
+                        border: Border.all(color: AppColors.saffron),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -493,10 +494,10 @@ class _ShlokaSpeedRunScreenState extends State<ShlokaSpeedRunScreen> {
 
     if (isAnswered) {
       if (isCorrectOption) {
-        backgroundColor = Colors.green.withOpacity(0.2);
+        backgroundColor = Colors.green.withValues(alpha: 0.2);
         borderColor = Colors.green;
       } else if (isSelected) {
-        backgroundColor = Colors.red.withOpacity(0.2);
+        backgroundColor = Colors.red.withValues(alpha: 0.2);
         borderColor = Colors.red;
       }
     }

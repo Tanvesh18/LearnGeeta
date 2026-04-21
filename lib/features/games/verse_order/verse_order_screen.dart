@@ -321,7 +321,7 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
+                      color: AppColors.gradientStart,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
@@ -355,22 +355,6 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    if (!isCorrect)
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          _loadNewVerse();
-                          setState(() {});
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
-                          ),
-                        ),
-                        child: const Text('Try Again'),
-                      ),
                     ElevatedButton(
                       onPressed: () {
                         Navigator.pop(context);
@@ -378,13 +362,14 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
                         setState(() {});
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
+                        backgroundColor: AppColors.saffron,
+                        foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 24,
                           vertical: 12,
                         ),
                       ),
-                      child: const Text('Next Level'),
+                      child: Text(isCorrect ? 'Next Level' : 'Try Again'),
                     ),
                   ],
                 ),
@@ -421,8 +406,8 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
             title: const Text('Verse Order'),
             centerTitle: true,
             elevation: 0,
-            backgroundColor: Colors.orange,
-
+            backgroundColor: AppColors.saffron,
+            foregroundColor: Colors.white,
             actions: [
               Padding(
                 padding: const EdgeInsets.all(8),
@@ -455,15 +440,11 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
             ],
           ),
           body: Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.orange.shade50,
-                  Colors.orange.shade100,
-                  Colors.orange.shade50,
-                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [AppColors.gradientStart, AppColors.gradientEnd],
               ),
             ),
             child: SafeArea(
@@ -485,12 +466,12 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
                             decoration: BoxDecoration(
                               color: remainingSeconds < 10
                                   ? Colors.red.shade100
-                                  : Colors.blue.shade100,
+                                  : AppColors.gradientEnd,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
                                 color: remainingSeconds < 10
                                     ? Colors.red
-                                    : Colors.blue,
+                                    : AppColors.saffron,
                               ),
                             ),
                             child: Column(
@@ -509,7 +490,7 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
                                     fontWeight: FontWeight.bold,
                                     color: remainingSeconds < 10
                                         ? Colors.red
-                                        : Colors.blue,
+                                        : AppColors.deepBrown,
                                   ),
                                 ),
                               ],
@@ -523,7 +504,7 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
                                 vertical: 8,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.orange.shade100,
+                                color: AppColors.gradientEnd,
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Column(
@@ -547,7 +528,7 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
                                         style: const TextStyle(
                                           fontSize: 20,
                                           fontWeight: FontWeight.bold,
-                                          color: Colors.orange,
+                                          color: AppColors.saffron,
                                         ),
                                       ),
                                     ],
@@ -567,7 +548,7 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.08),
+                              color: Colors.black.withValues(alpha: 0.08),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),
@@ -643,7 +624,7 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withOpacity(0.06),
+                                        color: Colors.black.withValues(alpha: 0.06),
                                         blurRadius: 8,
                                         offset: const Offset(0, 2),
                                       ),
@@ -770,7 +751,8 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
                                 icon: const Icon(Icons.refresh),
                                 label: const Text('Restart'),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.blue,
+                                  backgroundColor: AppColors.saffron,
+                                  foregroundColor: Colors.white,
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 20,
                                     vertical: 12,

@@ -53,7 +53,16 @@ class _SignupScreenState extends State<SignupScreen> {
     );
     if (!mounted || !success) return;
 
-    Navigator.pop(context);
+    if (_controller.signUpNeedsConfirmation) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Account created! Check your email to confirm.'),
+          duration: Duration(seconds: 4),
+        ),
+      );
+    }
+    if (mounted) Navigator.pop(context);
   }
 
   @override

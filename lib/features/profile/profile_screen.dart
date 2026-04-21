@@ -99,38 +99,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
             title: const Text('Profile'),
             centerTitle: true,
             elevation: 0,
-            backgroundColor: Colors.transparent,
-            foregroundColor: Colors.black87,
+            backgroundColor: AppColors.saffron,
+            foregroundColor: Colors.white,
             actions: [
               IconButton(icon: const Icon(Icons.logout), onPressed: _logout),
             ],
           ),
-          extendBodyBehindAppBar: true,
-          body: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppColors.cream,
-                  const Color.fromARGB(255, 255, 157, 0),
-                  Colors.white,
-                ],
-              ),
-            ),
-            child: SafeArea(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
+          body: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.96),
+                        color: Colors.white.withValues(alpha: 0.96),
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
+                            color: Colors.black.withValues(alpha: 0.08),
                             blurRadius: 20,
                             offset: const Offset(0, 10),
                           ),
@@ -148,7 +135,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.saffron.withOpacity(0.12),
+                              color: AppColors.saffron.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: const Text(
@@ -162,7 +149,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           const SizedBox(height: 18),
                           CircleAvatar(
                             radius: 46,
-                            backgroundColor: AppColors.saffron.withOpacity(
+                            backgroundColor: AppColors.saffron.withValues(alpha: 
                               0.24,
                             ),
                             child: Text(
@@ -200,17 +187,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           const SizedBox(height: 20),
                           Chip(
-                            backgroundColor: Colors.blue.shade50,
+                            backgroundColor: AppColors.saffron.withValues(alpha: 0.12),
                             label: Text(
                               'Level ${progress?.level ?? 1}',
                               style: const TextStyle(
-                                color: Colors.blueAccent,
+                                color: AppColors.saffron,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
                             avatar: const Icon(
                               Icons.star,
-                              color: Colors.blueAccent,
+                              color: AppColors.saffron,
                               size: 18,
                             ),
                           ),
@@ -224,8 +211,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 20),
                     _editCard(),
-                  ],
-                ),
+                ],
               ),
             ),
           ),
@@ -254,7 +240,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _statWithIcon(IconData icon, String label, String value) {
     return Column(
       children: [
-        Icon(icon, color: Colors.orange, size: 28),
+        Icon(icon, color: AppColors.saffron, size: 28),
         const SizedBox(height: 4),
         Text(
           value,

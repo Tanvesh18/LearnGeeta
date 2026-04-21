@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
@@ -78,8 +79,7 @@ class _ShlokaMatchScreenState extends State<ShlokaMatchScreen> {
     final availableShlokas = shlokaDatabase
         .where((s) => s.difficulty == difficulty)
         .toList();
-    currentShloka =
-        availableShlokas[DateTime.now().microsecond % availableShlokas.length];
+    currentShloka = availableShlokas[Random().nextInt(availableShlokas.length)];
 
     // Shuffle meanings
     shuffledMeanings = List<String>.from(currentShloka!.meaningOptions);
@@ -274,15 +274,11 @@ class _ShlokaMatchScreenState extends State<ShlokaMatchScreen> {
         ],
       ),
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.orange.shade50,
-              Colors.orange.shade100,
-              Colors.orange.shade50,
-            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [AppColors.gradientStart, AppColors.gradientEnd],
           ),
         ),
         child: Padding(
@@ -318,7 +314,7 @@ class _ShlokaMatchScreenState extends State<ShlokaMatchScreen> {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: remainingSeconds <= 10 ? Colors.red : Colors.blue,
+                      color: remainingSeconds <= 10 ? Colors.red : AppColors.saffron,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -341,7 +337,7 @@ class _ShlokaMatchScreenState extends State<ShlokaMatchScreen> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 8,
                     ),
                   ],
@@ -412,7 +408,7 @@ class _ShlokaMatchScreenState extends State<ShlokaMatchScreen> {
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
+                                color: Colors.black.withValues(alpha: 0.05),
                                 blurRadius: 4,
                               ),
                             ],
@@ -473,4 +469,3 @@ class _ShlokaMatchScreenState extends State<ShlokaMatchScreen> {
   }
 }
 
-int max(int a, int b) => a > b ? a : b;

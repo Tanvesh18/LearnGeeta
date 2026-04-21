@@ -75,9 +75,9 @@ class _BattlefieldDebateScreenState extends State<BattlefieldDebateScreen> {
         .toList();
 
     if (matching.isEmpty) {
-      currentScenario = remaining[0];
+      currentScenario = remaining[Random().nextInt(remaining.length)];
     } else {
-      currentScenario = matching[0];
+      currentScenario = matching[Random().nextInt(matching.length)];
     }
 
     _seenScenarios.add(currentScenario.arjunaQuestion);
@@ -328,7 +328,7 @@ class _BattlefieldDebateScreenState extends State<BattlefieldDebateScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFFFFF3E0), Color(0xFFFFE0B2)],
+            colors: [AppColors.gradientStart, AppColors.gradientEnd],
           ),
         ),
         child: Stack(
@@ -347,7 +347,7 @@ class _BattlefieldDebateScreenState extends State<BattlefieldDebateScreen> {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: _timeLeft <= 10 ? Colors.red : Colors.brown,
+                          color: _timeLeft <= 10 ? Colors.red : AppColors.deepBrown,
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(

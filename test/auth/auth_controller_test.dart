@@ -74,6 +74,7 @@ class FakeAuthRepository implements IAuthRepository {
   Future<AuthResponse> signUp({
     required String email,
     required String password,
+    Map<String, dynamic>? data,
   }) async {
     signUpCalls += 1;
     throw UnimplementedError();

@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/app_dependencies.dart';
+import '../../../core/constants/colors.dart';
 import 'models/krishna_says_model.dart';
 
 class KrishnaSaysScreen extends StatefulWidget {
@@ -77,8 +79,7 @@ class _KrishnaSaysScreenState extends State<KrishnaSaysScreen>
       currentQuestionIndex = 0;
       currentQuestion = wisdomDatabase[0];
     } else {
-      currentQuestionIndex =
-          DateTime.now().millisecond % difficultyQuestions.length;
+      currentQuestionIndex = Random().nextInt(difficultyQuestions.length);
       currentQuestion = difficultyQuestions[currentQuestionIndex];
     }
 
@@ -164,7 +165,7 @@ class _KrishnaSaysScreenState extends State<KrishnaSaysScreen>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.1),
+                  color: AppColors.gradientStart,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Column(
@@ -174,7 +175,7 @@ class _KrishnaSaysScreenState extends State<KrishnaSaysScreen>
                       'Bhagavad Gita ${currentQuestion.chapter}.${currentQuestion.verse}',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Colors.blue,
+                        color: AppColors.deepBrown,
                         fontSize: 12,
                       ),
                     ),
@@ -201,7 +202,7 @@ class _KrishnaSaysScreenState extends State<KrishnaSaysScreen>
                   horizontal: 12,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.amber.withOpacity(0.2),
+                  color: Colors.amber.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -240,7 +241,8 @@ class _KrishnaSaysScreenState extends State<KrishnaSaysScreen>
       return Scaffold(
         appBar: AppBar(
           title: const Text('Krishna Says'),
-          backgroundColor: Colors.orange,
+          backgroundColor: AppColors.saffron,
+        foregroundColor: Colors.white,
         ),
         body: const Center(child: CircularProgressIndicator()),
       );
@@ -249,7 +251,8 @@ class _KrishnaSaysScreenState extends State<KrishnaSaysScreen>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Krishna Says'),
-        backgroundColor: Colors.orange,
+        backgroundColor: AppColors.saffron,
+        foregroundColor: Colors.white,
         elevation: 0,
         actions: [
           Padding(
@@ -275,11 +278,11 @@ class _KrishnaSaysScreenState extends State<KrishnaSaysScreen>
         ],
       ),
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.orange.shade50, Colors.red.shade50],
+            colors: [AppColors.gradientStart, AppColors.gradientEnd],
           ),
         ),
         child: SafeArea(
@@ -308,11 +311,8 @@ class _KrishnaSaysScreenState extends State<KrishnaSaysScreen>
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(12),
-                              gradient: LinearGradient(
-                                colors: [
-                                  Colors.orange.shade600,
-                                  Colors.red.shade600,
-                                ],
+                              gradient: const LinearGradient(
+                                colors: [AppColors.saffron, AppColors.deepBrown],
                               ),
                             ),
                             child: Column(
@@ -350,7 +350,7 @@ class _KrishnaSaysScreenState extends State<KrishnaSaysScreen>
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.amber.withOpacity(0.2),
+                            color: Colors.amber.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(color: Colors.amber, width: 1),
                           ),
@@ -384,10 +384,10 @@ class _KrishnaSaysScreenState extends State<KrishnaSaysScreen>
 
     if (isAnswered) {
       if (isCorrectOption) {
-        backgroundColor = Colors.green.withOpacity(0.2);
+        backgroundColor = Colors.green.withValues(alpha: 0.2);
         borderColor = Colors.green;
       } else if (isSelected && !isCorrect) {
-        backgroundColor = Colors.red.withOpacity(0.2);
+        backgroundColor = Colors.red.withValues(alpha: 0.2);
         borderColor = Colors.red;
       }
     }

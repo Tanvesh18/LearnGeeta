@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/app_dependencies.dart';
+import '../../../core/constants/colors.dart';
 import '../../../core/models/game_stats.dart';
 import '../../../features/progress/repositories/game_stats_repository.dart';
 import 'models/karma_path_model.dart';
@@ -196,7 +197,7 @@ class _KarmaPathScreenState extends State<KarmaPathScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.deepOrange.withValues(alpha: 0.1),
+                  color: AppColors.gradientStart,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -225,7 +226,7 @@ class _KarmaPathScreenState extends State<KarmaPathScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.deepOrange.withValues(alpha: 0.1),
+                  color: AppColors.gradientStart,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -312,7 +313,8 @@ class _KarmaPathScreenState extends State<KarmaPathScreen> {
       return Scaffold(
         appBar: AppBar(
           title: const Text('Karma Path Builder'),
-          backgroundColor: Colors.indigo.shade700,
+          backgroundColor: AppColors.saffron,
+          foregroundColor: Colors.white,
         ),
         body: const Center(child: CircularProgressIndicator()),
       );
@@ -321,7 +323,8 @@ class _KarmaPathScreenState extends State<KarmaPathScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Karma Path Builder'),
-        backgroundColor: Colors.orange,
+        backgroundColor: AppColors.saffron,
+        foregroundColor: Colors.white,
         elevation: 0,
         actions: [
           Padding(
@@ -350,11 +353,11 @@ class _KarmaPathScreenState extends State<KarmaPathScreen> {
         ],
       ),
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.orange.shade50, Colors.deepOrange.shade100],
+            colors: [AppColors.gradientStart, AppColors.gradientEnd],
           ),
         ),
         child: SafeArea(
@@ -434,11 +437,8 @@ class _KarmaPathScreenState extends State<KarmaPathScreen> {
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(12),
-                              gradient: LinearGradient(
-                                colors: [
-                                  Colors.deepOrange.shade600,
-                                  Colors.orange.shade600,
-                                ],
+                              gradient: const LinearGradient(
+                                colors: [AppColors.deepBrown, AppColors.saffron],
                               ),
                             ),
                             child: Column(

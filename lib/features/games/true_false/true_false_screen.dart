@@ -217,9 +217,10 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text('True or False'),
+        title: const Text('True or False'),
         elevation: 0,
-        backgroundColor: Colors.orange,
+        backgroundColor: AppColors.saffron,
+        foregroundColor: Colors.white,
 
         actions: [
           Padding(
@@ -247,15 +248,11 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
       body: Stack(
         children: [
           Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppColors.gradientStart,
-                  AppColors.gradientEnd,
-                  AppColors.gradientStart,
-                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [AppColors.gradientStart, AppColors.gradientEnd],
               ),
             ),
             child: Padding(
@@ -326,22 +323,30 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
                       Expanded(
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.saffron,
+                            backgroundColor: const Color(0xFF4CAF50),
                             foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
                           onPressed: () => _answer(true),
-                          child: const Text('True'),
+                          child: const Text(
+                            'True',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.saffron,
+                            backgroundColor: const Color(0xFFE53935),
                             foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
                           onPressed: () => _answer(false),
-                          child: const Text('False'),
+                          child: const Text(
+                            'False',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
                     ],
@@ -360,8 +365,8 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
                                 ),
                                 decoration: BoxDecoration(
                                   color: result!.startsWith('Correct')
-                                      ? AppColors.success.withOpacity(0.2)
-                                      : AppColors.error.withOpacity(0.2),
+                                      ? AppColors.success.withValues(alpha: 0.2)
+                                      : AppColors.error.withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Row(

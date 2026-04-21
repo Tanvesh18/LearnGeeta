@@ -18,8 +18,9 @@ class _WheelOfGunasScreenState extends State<WheelOfGunasScreen>
     with TickerProviderStateMixin {
   late GameState gameState;
   bool _isLoading = true;
-  late WheelSituation currentSituation;
+  WheelSituation? currentSituation;
   GunaType? selectedGuna;
+  GunaType? _landedGuna;
   bool hasAnswered = false;
   bool isCorrect = false;
   int _lastEarnedXp = 0;
@@ -64,28 +65,9 @@ class _WheelOfGunasScreenState extends State<WheelOfGunasScreen>
   }
 
   void _loadNewSituation() {
-    if (_seenSituations.length == wheelDatabase.length) {
-      _seenSituations.clear();
-    }
-
-    final remaining = wheelDatabase
-        .where((s) => !_seenSituations.contains(s.situation))
-        .toList();
-
-    final targetDifficulty = _getDifficultyForLevel(gameState.level);
-    final matching = remaining
-        .where((s) => s.difficulty == targetDifficulty || remaining.length <= 2)
-        .toList();
-
-    if (matching.isEmpty) {
-      currentSituation = remaining[0];
-    } else {
-      currentSituation = matching[0];
-    }
-
-    _seenSituations.add(currentSituation.situation);
     setState(() {
       selectedGuna = null;
+      _landedGuna = null;
       hasAnswered = false;
       isCorrect = false;
     });
@@ -98,28 +80,83 @@ class _WheelOfGunasScreenState extends State<WheelOfGunasScreen>
     return 'hard';
   }
 
+  GunaType _gunaFromAngle(double turns) {
+    // The wheel has 3 equal segments starting at -pi/2 (top):
+    //   Sattva: -pi/2 to pi/6   (top segment)
+    //   Rajas:  pi/6 to 5*pi/6  (right segment)
+    //   Tamas:  5*pi/6 to 3*pi/2 (left segment)
+    // The pointer is fixed at top (12 o'clock). We find which segment
+    // of the wheel is currently under the pointer.
+    // As the wheel rotates by `angle`, the segment that was at angle 0
+    // (top = Sattva start) moves. The pointer sees the segment whose
+    // original start offset is (-angle) mod 2*pi.
+    final angle = (turns * 2 * pi) % (2 * pi);
+    // Effective position of pointer relative to wheel = -angle (mod 2pi)
+    double pos = (-angle) % (2 * pi);
+    if (pos < 0) pos += 2 * pi;
+    // Segments: Sattva [0, 2pi/3), Rajas [2pi/3, 4pi/3), Tamas [4pi/3, 2pi)
+    // But wheel starts with Sattva at top (-pi/2 offset), so we shift:
+    pos = (pos + pi / 2) % (2 * pi);
+    if (pos < 2 * pi / 3) return GunaType.sattva;
+    if (pos < 4 * pi / 3) return GunaType.rajas;
+    return GunaType.tamas;
+  }
+
   void _spinWheel() {
     setState(() => _isSpinning = true);
 
     final random = Random();
-    final spins = 5 + random.nextInt(5); // 5-10 full rotations
-    final finalTurns = spins + random.nextDouble();
+    final spins = 5 + random.nextInt(5);
+    // Pick a random landing fraction within one of the 3 segments
+    final segmentIndex = random.nextInt(3);
+    final segmentFraction = (segmentIndex / 3) + random.nextDouble() / 3;
+    final finalTurns = spins.toDouble() + segmentFraction;
 
     _spinController.reset();
-    setState(() => _isSpinning = true);
     _spinController
         .animateTo(finalTurns, curve: Curves.decelerate)
         .whenComplete(() {
-          if (mounted) {
-            setState(() => _isSpinning = false);
-          }
+          if (!mounted) return;
+          final landed = _gunaFromAngle(finalTurns);
+          _pickQuestionForGuna(landed);
+          setState(() {
+            _landedGuna = landed;
+            _isSpinning = false;
+          });
         });
+  }
+
+  void _pickQuestionForGuna(GunaType guna) {
+    if (_seenSituations.length == wheelDatabase.length) {
+      _seenSituations.clear();
+    }
+
+    final targetDifficulty = _getDifficultyForLevel(gameState.level);
+    final byGuna = wheelDatabase
+        .where((s) => s.correctGuna == guna && !_seenSituations.contains(s.situation))
+        .toList();
+
+    List<WheelSituation> pool = byGuna
+        .where((s) => s.difficulty == targetDifficulty)
+        .toList();
+    if (pool.isEmpty) pool = byGuna;
+    if (pool.isEmpty) {
+      // Fallback: any unseen question
+      final remaining = wheelDatabase
+          .where((s) => !_seenSituations.contains(s.situation))
+          .toList();
+      pool = remaining.isEmpty ? wheelDatabase : remaining;
+    }
+
+    currentSituation = pool[Random().nextInt(pool.length)];
+    _seenSituations.add(currentSituation!.situation);
   }
 
   void _selectGuna(GunaType guna) {
     if (hasAnswered || _isSpinning) return;
 
-    final correct = guna == currentSituation.correctGuna;
+    if (currentSituation == null) return;
+    final correct = guna == currentSituation!.correctGuna;
 
     setState(() {
       selectedGuna = guna;
@@ -188,7 +225,7 @@ class _WheelOfGunasScreenState extends State<WheelOfGunasScreen>
                   )
                 else
                   Text(
-                    'Correct: ${_getGunaName(currentSituation.correctGuna)}',
+                    'Correct: ${_getGunaName(currentSituation!.correctGuna)}',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -203,7 +240,7 @@ class _WheelOfGunasScreenState extends State<WheelOfGunasScreen>
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    currentSituation.explanation,
+                    currentSituation!.explanation,
                     style: const TextStyle(fontSize: 14),
                   ),
                 ),
@@ -290,65 +327,106 @@ class _WheelOfGunasScreenState extends State<WheelOfGunasScreen>
                   ),
                   const SizedBox(height: 20),
 
-                  // Spinning Wheel
-                  Container(
-                    height: 200,
-                    width: 200,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.shadowColor,
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: AnimatedBuilder(
-                      animation: _spinController,
-                      builder: (context, child) {
-                        return Transform.rotate(
-                          angle: _spinController.value * 2 * pi,
-                          child: CustomPaint(
-                            painter: WheelPainter(),
-                            child: const Center(
-                              child: Icon(
-                                Icons.refresh,
-                                size: 40,
-                                color: AppColors.saffron,
-                              ),
+                  // Spinning Wheel with pointer
+                  Stack(
+                    alignment: Alignment.topCenter,
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.only(top: 12),
+                        height: 200,
+                        width: 200,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.shadowColor,
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
                             ),
-                          ),
-                        );
-                      },
-                    ),
+                          ],
+                        ),
+                        child: AnimatedBuilder(
+                          animation: _spinController,
+                          builder: (context, child) {
+                            return Transform.rotate(
+                              angle: _spinController.value * 2 * pi,
+                              child: CustomPaint(
+                                painter: WheelPainter(),
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.refresh,
+                                    size: 40,
+                                    color: AppColors.saffron,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      // Pointer triangle at top
+                      const Icon(Icons.arrow_drop_down, color: Colors.black87, size: 28),
+                    ],
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
+
+                  // Landed guna banner
+                  if (_landedGuna != null && !_isSpinning)
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: gunaOptions.firstWhere((g) => g.type == _landedGuna).color.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: gunaOptions.firstWhere((g) => g.type == _landedGuna).color.withValues(alpha: 0.4),
+                        ),
+                      ),
+                      child: Text(
+                        'The wheel landed on ${gunaOptions.firstWhere((g) => g.type == _landedGuna).name}! Which guna does this describe?',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: gunaOptions.firstWhere((g) => g.type == _landedGuna).color,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
 
                   // Situation
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.shadowColor,
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+                  if (!_isSpinning)
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.shadowColor,
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        currentSituation!.situation,
+                        style: const TextStyle(fontSize: 16, height: 1.4),
+                        textAlign: TextAlign.center,
+                      ),
+                    )
+                  else
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 24),
+                      child: Text(
+                        'Spinning...',
+                        style: TextStyle(fontSize: 16, color: AppColors.saffron, fontWeight: FontWeight.w600),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
-                    child: Text(
-                      currentSituation.situation,
-                      style: const TextStyle(fontSize: 16, height: 1.4),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
 
                   // Guna Options
                   Expanded(
@@ -357,7 +435,7 @@ class _WheelOfGunasScreenState extends State<WheelOfGunasScreen>
                       children: gunaOptions.map((guna) {
                         final isSelected = selectedGuna == guna.type;
                         final isCorrectOption =
-                            guna.type == currentSituation.correctGuna;
+                            guna.type == currentSituation!.correctGuna;
 
                         Color backgroundColor = Colors.white;
                         if (hasAnswered) {
@@ -513,6 +591,25 @@ class WheelPainter extends CustomPainter {
       true,
       paint,
     );
+
+    // Draw segment labels
+    final labels = ['Sattva', 'Rajas', 'Tamas'];
+    final labelAngles = [-pi / 2 + pi / 3, pi / 6 + pi / 3, 5 * pi / 6 + pi / 3];
+    final textPainter = TextPainter(textDirection: TextDirection.ltr);
+    for (int i = 0; i < 3; i++) {
+      textPainter.text = TextSpan(
+        text: labels[i],
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 13,
+          fontWeight: FontWeight.bold,
+        ),
+      );
+      textPainter.layout();
+      final labelX = center.dx + cos(labelAngles[i]) * radius * 0.6 - textPainter.width / 2;
+      final labelY = center.dy + sin(labelAngles[i]) * radius * 0.6 - textPainter.height / 2;
+      textPainter.paint(canvas, Offset(labelX, labelY));
+    }
 
     // Draw center circle
     paint.color = Colors.white;

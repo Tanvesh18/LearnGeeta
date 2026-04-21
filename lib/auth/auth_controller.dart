@@ -22,9 +22,11 @@ class AuthController extends ChangeNotifier {
 
   bool _isLoading = false;
   String? _errorMessage;
+  bool _signUpNeedsConfirmation = false;
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+  bool get signUpNeedsConfirmation => _signUpNeedsConfirmation;
 
   void clearError() {
     _errorMessage = null;
@@ -58,20 +60,28 @@ class AuthController extends ChangeNotifier {
         final response = await _authRepository.signUp(
           email: email,
           password: password,
+          data: {'full_name': name},
         );
         final user = response.user;
         if (user == null) {
           throw Exception('User is null after signup');
         }
 
-        final profile = UserProfile(
-          id: user.id,
-          email: email,
-          fullName: name,
-          language: 'English',
-        );
-        await _profileRepository.upsertProfile(profile);
-        await _progressRepository.createInitialProgressForUser(user.id);
+        _signUpNeedsConfirmation = response.session == null;
+
+        try {
+          final profile = UserProfile(
+            id: user.id,
+            email: email,
+            fullName: name,
+            language: 'English',
+          );
+          await _profileRepository.upsertProfile(profile);
+          await _progressRepository.createInitialProgressForUser(user.id);
+        } catch (_) {
+          // Profile/progress creation may fail when no session exists yet
+          // (email confirmation required). fetchProfile/fetchProgress have fallbacks.
+        }
         return true;
       },
       fallbackMessage: 'Unable to create account',

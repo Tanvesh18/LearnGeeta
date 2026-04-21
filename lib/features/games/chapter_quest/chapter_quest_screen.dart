@@ -72,9 +72,9 @@ class _ChapterQuestScreenState extends State<ChapterQuestScreen> {
         .toList();
 
     if (matching.isEmpty) {
-      currentQuest = remaining[0];
+      currentQuest = remaining[Random().nextInt(remaining.length)];
     } else {
-      currentQuest = matching[0];
+      currentQuest = matching[Random().nextInt(matching.length)];
     }
 
     _seenQuests.add(currentQuest.question);
@@ -268,7 +268,7 @@ class _ChapterQuestScreenState extends State<ChapterQuestScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFFFFF3E0), Color(0xFFFFE0B2)],
+            colors: [AppColors.gradientStart, AppColors.gradientEnd],
           ),
         ),
         child: Stack(
@@ -287,7 +287,7 @@ class _ChapterQuestScreenState extends State<ChapterQuestScreen> {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: _timeLeft <= 10 ? Colors.red : Colors.green,
+                          color: _timeLeft <= 10 ? Colors.red : AppColors.saffron,
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(

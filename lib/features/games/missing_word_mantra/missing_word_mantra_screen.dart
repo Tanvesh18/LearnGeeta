@@ -80,9 +80,9 @@ class _MissingWordMantraScreenState extends State<MissingWordMantraScreen> {
         .toList();
 
     if (matching.isEmpty) {
-      currentMantra = remaining[0];
+      currentMantra = remaining[Random().nextInt(remaining.length)];
     } else {
-      currentMantra = matching[0];
+      currentMantra = matching[Random().nextInt(matching.length)];
     }
 
     _seenMantras.add(currentMantra.title);
@@ -284,7 +284,7 @@ class _MissingWordMantraScreenState extends State<MissingWordMantraScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFFFFF8E1), Color(0xFFFFE0B2)],
+            colors: [AppColors.gradientStart, AppColors.gradientEnd],
           ),
         ),
         child: Stack(
@@ -303,7 +303,7 @@ class _MissingWordMantraScreenState extends State<MissingWordMantraScreen> {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: _timeLeft <= 10 ? Colors.red : Colors.orange,
+                          color: _timeLeft <= 10 ? Colors.red : AppColors.saffron,
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(

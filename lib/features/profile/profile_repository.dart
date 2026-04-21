@@ -36,10 +36,12 @@ class ProfileRepository implements IProfileRepository {
         .eq('id', user.id);
 
     if (profileList.isEmpty) {
+      final fullName =
+          (user.userMetadata?['full_name'] as String?)?.trim() ?? '';
       final profile = UserProfile(
         id: user.id,
         email: user.email ?? '',
-        fullName: '',
+        fullName: fullName,
         language: 'English',
       );
       await _client.from('profiles').insert(profile.toMap());

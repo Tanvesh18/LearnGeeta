@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:confetti/confetti.dart';
 import '../../../core/app_dependencies.dart';
+import '../../../core/constants/colors.dart';
 import '../../../core/models/game_stats.dart';
 import '../../../features/progress/repositories/game_stats_repository.dart';
 import 'models/dharma_model.dart';
@@ -65,9 +67,9 @@ class _DharmaChoicesScreenState extends State<DharmaChoicesScreen> {
         .toList();
 
     if (matching.isEmpty) {
-      currentSituation = remaining[0];
+      currentSituation = remaining[Random().nextInt(remaining.length)];
     } else {
-      currentSituation = matching[0];
+      currentSituation = matching[Random().nextInt(matching.length)];
     }
 
     _seenSituations.add(currentSituation.title);
@@ -154,7 +156,7 @@ class _DharmaChoicesScreenState extends State<DharmaChoicesScreen> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
+                    color: AppColors.gradientStart,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
@@ -165,7 +167,7 @@ class _DharmaChoicesScreenState extends State<DharmaChoicesScreen> {
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: Colors.blue,
+                          color: AppColors.deepBrown,
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -194,7 +196,8 @@ class _DharmaChoicesScreenState extends State<DharmaChoicesScreen> {
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
-                      backgroundColor: Colors.blue,
+                      backgroundColor: AppColors.saffron,
+                      foregroundColor: Colors.white,
                     ),
                     onPressed: () {
                       Navigator.pop(context);
@@ -249,8 +252,10 @@ class _DharmaChoicesScreenState extends State<DharmaChoicesScreen> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text('Dharma Choices'),
+        title: const Text('Dharma Choices'),
         elevation: 0,
+        backgroundColor: AppColors.saffron,
+        foregroundColor: Colors.white,
         actions: [
           Padding(
             padding: const EdgeInsets.all(8),
@@ -277,15 +282,11 @@ class _DharmaChoicesScreenState extends State<DharmaChoicesScreen> {
       body: Stack(
         children: [
           Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.orange.shade50,
-                  Colors.orange.shade100,
-                  Colors.orange.shade50,
-                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [AppColors.gradientStart, AppColors.gradientEnd],
               ),
             ),
             child: Padding(
@@ -319,8 +320,9 @@ class _DharmaChoicesScreenState extends State<DharmaChoicesScreen> {
                       Chip(
                         label: Text(
                           _getDifficultyForLevel(gameState.level).toUpperCase(),
+                          style: const TextStyle(color: Colors.white, fontSize: 12),
                         ),
-                        backgroundColor: Colors.orange.shade200,
+                        backgroundColor: AppColors.saffron,
                       ),
                     ],
                   ),
@@ -448,4 +450,3 @@ class _DharmaChoicesScreenState extends State<DharmaChoicesScreen> {
   }
 }
 
-int max(int a, int b) => a > b ? a : b;
