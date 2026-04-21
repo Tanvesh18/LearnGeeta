@@ -106,9 +106,9 @@ class GameState {
 const List<GameEnding> gameEndings = [
   GameEnding(
     endingId: 'enlightened',
-    title: '🌟 Enlightened Path',
+    title: ' Enlightened Path',
     description: 'You discovered peace within',
-    emoji: '🌟',
+    emoji: '',
     message:
         '"You have realized that true happiness comes from within, from aligning your actions with your dharma and seeing the divinity in all beings. You are at peace." - Bhagavad Gita 12.13',
     minKarma: 8,
@@ -116,9 +116,9 @@ const List<GameEnding> gameEndings = [
   ),
   GameEnding(
     endingId: 'balanced',
-    title: '⚖️ Balanced Life',
+    title: ' Balanced Life',
     description: 'You found harmony in duty and detachment',
-    emoji: '⚖️',
+    emoji: '',
     message:
         '"You have learned to fulfill your duties while maintaining inner balance. You perform your work without attachment to the fruits. This is true wisdom." - Bhagavad Gita 2.47-48',
     minKarma: 2,
@@ -126,9 +126,9 @@ const List<GameEnding> gameEndings = [
   ),
   GameEnding(
     endingId: 'struggling',
-    title: '🌪️ Still Struggling',
+    title: ' Still Struggling',
     description: 'You face life\'s challenges with confusion',
-    emoji: '🌪️',
+    emoji: '',
     message:
         '"You are still caught in the cycle of desire and attachment. Seek wisdom, practice detachment, and remember your higher purpose. The path is never lost." - Bhagavad Gita 6.26',
     minKarma: -7,
@@ -136,9 +136,9 @@ const List<GameEnding> gameEndings = [
   ),
   GameEnding(
     endingId: 'lost',
-    title: '🔴 Lost in Delusion',
+    title: ' Lost in Delusion',
     description: 'You surrendered to ego and attachment',
-    emoji: '🔴',
+    emoji: '',
     message:
         '"You have been consumed by ego, fear, and attachment. But know—it is never too late. Return to your dharma, release your ego, and reconnect with truth." - Bhagavad Gita 18.66',
     minKarma: -100,
@@ -153,7 +153,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'A New Day',
     description:
         'You wake up feeling overwhelmed with life\'s challenges. Your mind is restless, and you\'re not sure how to move forward.',
-    emoji: '🌅',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Seek quiet meditation before facing the day',
@@ -177,7 +177,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Morning Reflection',
     description:
         'As you prepare for your day, you notice a growing sense of dissatisfaction with your current path. What should guide your choices?',
-    emoji: '🤔',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Follow your heart and intuition',
@@ -201,7 +201,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Unexpected Challenge',
     description:
         'A sudden obstacle appears in your path today. How do you respond to this test of your character?',
-    emoji: '⚠️',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Face it with courage and determination',
@@ -225,7 +225,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Inner Conflict',
     description:
         'You feel torn between what you want and what you know is right. Which voice will you listen to?',
-    emoji: '⚖️',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Choose what brings immediate pleasure',
@@ -249,7 +249,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Social Encounter',
     description:
         'You encounter someone who needs help, but helping them would inconvenience you. What do you do?',
-    emoji: '🤝',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Help without hesitation or expectation',
@@ -273,7 +273,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'A New Day',
     description:
         'You wake up feeling overwhelmed with life\'s challenges. Your mind is restless, and you\'re not sure how to move forward.',
-    emoji: '🌅',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Seek quiet meditation before facing the day',
@@ -297,7 +297,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Following Your Heart',
     description:
         'You listen to your inner voice. It leads you to make choices that feel authentic and true to yourself.',
-    emoji: '❤️',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Trust the guidance completely',
@@ -316,7 +316,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Rational Decision Making',
     description:
         'You analyze situations logically, weighing pros and cons before making decisions.',
-    emoji: '🧠',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Stick strictly to logic and data',
@@ -335,7 +335,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Seeking Ancient Wisdom',
     description:
         'You turn to timeless teachings and spiritual guidance to navigate your path.',
-    emoji: '📜',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Study and apply the teachings deeply',
@@ -354,7 +354,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Facing Challenges',
     description:
         'You confront the obstacle directly, using it as an opportunity to grow stronger.',
-    emoji: '🛡️',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Overcome it through persistent effort',
@@ -373,7 +373,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Avoiding Conflict',
     description:
         'You find ways to circumvent the challenge, preserving your comfort and convenience.',
-    emoji: '🌀',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Reflect on why you avoided it',
@@ -392,7 +392,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Embracing What Is',
     description:
         'You accept the challenge as part of life\'s flow, surrendering to what you cannot control.',
-    emoji: '🌊',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Respond with grace and wisdom',
@@ -411,7 +411,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Pursuit of Pleasure',
     description:
         'You prioritize immediate gratification and personal desires above other considerations.',
-    emoji: '🎉',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Enjoy but recognize the emptiness',
@@ -430,7 +430,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Path of Duty',
     description:
         'You honor your responsibilities and commitments, placing duty above personal desires.',
-    emoji: '⚖️',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Perform duty with love and devotion',
@@ -449,7 +449,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Pure Compassion',
     description:
         'Your help comes from genuine care for others, without any thought of personal gain.',
-    emoji: '🤲',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Continue helping others selflessly',
@@ -464,7 +464,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Transactional Help',
     description:
         'You help others but always keep track of what you give and what you might receive in return.',
-    emoji: '🤝',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Learn to give without expectation',
@@ -483,7 +483,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Self-Preservation',
     description:
         'You prioritize your own needs and comfort, choosing not to inconvenience yourself for others.',
-    emoji: '🛡️',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Reflect on the impact of your choice',
@@ -502,7 +502,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Flow of Intuition',
     description:
         'Following your heart leads you to experiences that feel deeply meaningful and authentic.',
-    emoji: '🌈',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Trust intuition in all decisions',
@@ -517,7 +517,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Pure Logic',
     description:
         'Your logical approach serves you well in practical matters, but sometimes misses the human element.',
-    emoji: '📊',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Incorporate emotional intelligence',
@@ -532,7 +532,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Deep Wisdom',
     description:
         'You immerse yourself in spiritual teachings, finding profound guidance for your life.',
-    emoji: '📚',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Apply wisdom in daily life',
@@ -547,7 +547,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Occasional Guidance',
     description:
         'You consult wisdom teachings when needed, finding them helpful but not transformative.',
-    emoji: '💭',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Deepen your practice',
@@ -562,7 +562,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Triumph Through Persistence',
     description:
         'Your determination overcomes the obstacle, building your confidence and strength.',
-    emoji: '🏆',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Use this strength to help others',
@@ -577,7 +577,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Learning from Adversity',
     description:
         'The challenge teaches you valuable lessons about resilience and wisdom.',
-    emoji: '🌱',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Apply these lessons broadly',
@@ -592,7 +592,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Staying Comfortable',
     description:
         'You avoid challenges, maintaining your comfort but missing opportunities for growth.',
-    emoji: '🛋️',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Eventually face challenges',
@@ -607,7 +607,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Grace Under Pressure',
     description:
         'You handle the challenge with wisdom and composure, turning difficulty into opportunity.',
-    emoji: '🕊️',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Continue responding with grace',
@@ -622,7 +622,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Mixed Acceptance',
     description:
         'You accept what you cannot change but still try to control what you can.',
-    emoji: '⚖️',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Learn to surrender more fully',
@@ -637,7 +637,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Temporary Satisfaction',
     description:
         'Pleasure brings momentary happiness, but you recognize its impermanence.',
-    emoji: '🎈',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Seek deeper, lasting fulfillment',
@@ -652,7 +652,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Lost in Desire',
     description:
         'Pursuing pleasure without restraint leads to dissatisfaction and regret.',
-    emoji: '🌪️',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Recognize the harm and change',
@@ -667,7 +667,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Sacred Duty',
     description:
         'You perform your duties with love, seeing them as offerings to something greater.',
-    emoji: '🙏',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Reach enlightenment through service',
@@ -682,7 +682,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Burdened Obligation',
     description:
         'You fulfill your responsibilities but carry resentment, diminishing the joy in your actions.',
-    emoji: '😞',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Transform duty into devotion',
@@ -697,7 +697,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Lifelong Service',
     description:
         'Your selfless service becomes a way of life, bringing deep fulfillment and connection.',
-    emoji: '🌟',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Achieve ultimate realization',
@@ -712,7 +712,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Growing in Generosity',
     description:
         'You learn to give more freely, discovering the joy that comes from unconditional giving.',
-    emoji: '🎁',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Embrace pure generosity',
@@ -727,7 +727,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Strategic Relationships',
     description:
         'You maintain relationships based on mutual benefit, keeping emotional distance.',
-    emoji: '🤝',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Open up to deeper connections',
@@ -742,7 +742,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Solitary Journey',
     description:
         'Focusing only on yourself leads to isolation, though you maintain your independence.',
-    emoji: '🏔️',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Seek connection with others',
@@ -757,7 +757,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Inner Reflection',
     description:
         'You take time to examine your choices and their impact on yourself and others.',
-    emoji: '🪞',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Grow from self-awareness',
@@ -772,7 +772,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Moment of Clarity',
     description:
         'You sit quietly. In the silence, you feel connected to something deeper. A sense of purpose emerges.',
-    emoji: '🧘',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Act with clear intention today',
@@ -791,7 +791,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Chaos Unfolds',
     description:
         'Without intention, you stumble through the day. Conflicts arise. You react impulsively.',
-    emoji: '⚡',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Apologize sincerely and learn from it',
@@ -810,7 +810,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Wise Counsel',
     description:
         'Your mentor reminds you: "Your only control is your effort and intention. Release the outcome."',
-    emoji: '🧙',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Follow this wisdom deeply',
@@ -829,7 +829,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Purposeful Action',
     description:
         'With clarity, everything feels easier. Your work flows. You help someone in need without expecting reward.',
-    emoji: '✨',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Continue on this path of service',
@@ -848,7 +848,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Lost Focus',
     description:
         'The peace fades. By evening, you\'re back to old patterns—scrolling, worrying, avoiding.',
-    emoji: '📱',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Reconnect with your purpose',
@@ -867,7 +867,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Growth Through Failure',
     description:
         'By owning your mistake, you learn humility. Others respect your honesty.',
-    emoji: '🌱',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Use this lesson to guide future choices',
@@ -886,7 +886,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Trapped in Ego',
     description:
         'By blaming others, you rob yourself of learning. Resentment grows.',
-    emoji: '😠',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Recognize your responsibility',
@@ -905,7 +905,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Freedom in Non-Attachment',
     description:
         'You begin to release outcomes. You work hard but don\'t cling to success or failure.',
-    emoji: '🦅',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Help others with this wisdom',
@@ -924,7 +924,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Internal Conflict',
     description:
         'You agree with the wisdom but doubt creeps in. Can you really let go of control?',
-    emoji: '❓',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Test the wisdom through practice',
@@ -943,7 +943,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Selfless Service',
     description:
         'You dedicate yourself to service. Each act strengthens your connection to something greater.',
-    emoji: '🤝',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Move toward enlightenment',
@@ -958,7 +958,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Ego Returns',
     description:
         'You helped, but expected reward. When recognition doesn\'t come, disappointment follows.',
-    emoji: '😔',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Release expectations',
@@ -974,7 +974,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Renewed Intention',
     description:
         'You catch yourself and refocus. Small acts of awareness strengthen your path.',
-    emoji: '🔄',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Continue practicing',
@@ -988,7 +988,7 @@ const Map<String, StoryNode> storyTree = {
     nodeId: 'lost_in_distractions',
     title: 'Deeper into Delusion',
     description: 'The more you escape, the more empty you feel. Anxiety grows.',
-    emoji: '🌫️',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Reach out for help',
@@ -1004,7 +1004,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'True Learning',
     description:
         'Through failure, you discover resilience and wisdom. Your character deepens.',
-    emoji: '📚',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Share wisdom to help others',
@@ -1019,7 +1019,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Patterns of Behavior',
     description:
         'Without reflection, you repeat the same mistakes. The cycle continues.',
-    emoji: '🔁',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Break free from patterns',
@@ -1035,7 +1035,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Humility Emerges',
     description:
         'By taking responsibility, you feel lighter. Relationships heal.',
-    emoji: '💫',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Move forward with wisdom',
@@ -1049,7 +1049,7 @@ const Map<String, StoryNode> storyTree = {
     nodeId: 'ego_consumes',
     title: 'Drowning in Pride',
     description: 'Your denial isolates you further. Others avoid you.',
-    emoji: '💔',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Wake up and change',
@@ -1065,7 +1065,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Teaching Others',
     description:
         'You guide others toward freedom. Your compassion and wisdom ripple outward.',
-    emoji: '🌊',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Reach enlightenment',
@@ -1080,7 +1080,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Incomplete Journey',
     description:
         'Wisdom without sharing feels hollow. You\'re at peace but alone.',
-    emoji: '🏔️',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Find peace in stillness',
@@ -1094,7 +1094,7 @@ const Map<String, StoryNode> storyTree = {
     nodeId: 'experiential_learning',
     title: 'Wisdom Through Experience',
     description: 'Over time, the wisdom proves true. Your faith in it deepens.',
-    emoji: '⏳',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Achieve balanced understanding',
@@ -1109,7 +1109,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Rejection of Truth',
     description:
         'You dismiss wisdom as naive. You harden, becoming cynical and isolated.',
-    emoji: '❌',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Soften and reconsider',
@@ -1129,7 +1129,7 @@ const Map<String, StoryNode> storyTree = {
     title: 'Second Chance',
     description:
         'You reach out. Help comes. You realize you\'re never too lost.',
-    emoji: '🙏',
+    emoji: '',
     choices: [
       StoryChoice(
         text: 'Rebuild with humility',
@@ -1141,37 +1141,37 @@ const Map<String, StoryNode> storyTree = {
   ),
   'enlightened': StoryNode(
     nodeId: 'enlightened',
-    title: '✨ Ultimate Realization ✨',
+    title: ' Ultimate Realization ',
     description:
         'You have fully integrated dharma, detachment, and compassion. You live in harmony with the divine.',
-    emoji: '✨',
+    emoji: '',
     choices: [],
     isEnding: true,
   ),
   'balanced': StoryNode(
     nodeId: 'balanced',
-    title: '⚖️ Equilibrium Achieved ⚖️',
+    title: ' Equilibrium Achieved ',
     description:
         'You have found balance between duty and peace, action and acceptance.',
-    emoji: '⚖️',
+    emoji: '',
     choices: [],
     isEnding: true,
   ),
   'struggling': StoryNode(
     nodeId: 'struggling',
-    title: '🌪️ The Journey Continues 🌪️',
+    title: ' The Journey Continues ',
     description:
         'You still face challenges, but you now understand that the path itself is the destination.',
-    emoji: '🌪️',
+    emoji: '',
     choices: [],
     isEnding: true,
   ),
   'lost': StoryNode(
     nodeId: 'lost',
-    title: '🔴 Lost in Illusion 🔴',
+    title: ' Lost in Illusion ',
     description:
         'You are trapped in delusion, ego, and attachment. But even now, the door to change remains open.',
-    emoji: '🔴',
+    emoji: '',
     choices: [],
     isEnding: true,
   ),

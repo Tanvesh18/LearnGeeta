@@ -268,7 +268,7 @@ class _ChapterQuestScreenState extends State<ChapterQuestScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFFE8F5E8), Color(0xFFF1F8E9)],
+            colors: [Color(0xFFFFF3E0), Color(0xFFFFE0B2)],
           ),
         ),
         child: Stack(

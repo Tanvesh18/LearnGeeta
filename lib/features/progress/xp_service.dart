@@ -1,5 +1,4 @@
 import '../../core/utils/app_logger.dart';
-import '../../core/utils/xp_policy.dart';
 import 'progress_repository.dart';
 import 'progress_sync_notifier.dart';
 

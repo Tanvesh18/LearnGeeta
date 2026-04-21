@@ -240,7 +240,7 @@ class _KrishnaSaysScreenState extends State<KrishnaSaysScreen>
       return Scaffold(
         appBar: AppBar(
           title: const Text('Krishna Says'),
-          backgroundColor: Colors.purple.shade700,
+          backgroundColor: Colors.orange,
         ),
         body: const Center(child: CircularProgressIndicator()),
       );
@@ -249,7 +249,7 @@ class _KrishnaSaysScreenState extends State<KrishnaSaysScreen>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Krishna Says'),
-        backgroundColor: Colors.purple.shade700,
+        backgroundColor: Colors.orange,
         elevation: 0,
         actions: [
           Padding(
@@ -279,7 +279,7 @@ class _KrishnaSaysScreenState extends State<KrishnaSaysScreen>
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.purple.shade50, Colors.blue.shade50],
+            colors: [Colors.orange.shade50, Colors.red.shade50],
           ),
         ),
         child: SafeArea(
@@ -310,8 +310,8 @@ class _KrishnaSaysScreenState extends State<KrishnaSaysScreen>
                               borderRadius: BorderRadius.circular(12),
                               gradient: LinearGradient(
                                 colors: [
-                                  Colors.purple.shade600,
-                                  Colors.blue.shade600,
+                                  Colors.orange.shade600,
+                                  Colors.red.shade600,
                                 ],
                               ),
                             ),

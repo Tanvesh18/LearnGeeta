@@ -7,6 +7,8 @@ import 'dart:async';
 import 'dart:math';
 import '../../../core/app_dependencies.dart';
 import '../../../core/constants/colors.dart';
+import '../../../core/models/game_stats.dart';
+import '../../../features/progress/repositories/game_stats_repository.dart';
 import 'models/verse_model.dart';
 
 class VerseOrderScreen extends StatefulWidget {
@@ -26,6 +28,7 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
   int remainingSeconds = 30;
   bool isAnswerChecked = false;
   bool isAnswerCorrect = false;
+  late IGameStatsRepository _gameStatsRepository;
   int _lastEarnedXp = 0;
   bool isCheckButtonDisabled = false;
   bool showAnswer = false;
@@ -39,6 +42,7 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
   @override
   void initState() {
     super.initState();
+    _gameStatsRepository = GameStatsRepository();
     _confettiController = ConfettiController(
       duration: const Duration(seconds: 2),
     );
@@ -265,6 +269,21 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
   Future<void> _saveGameState() async {
     final prefs = await SharedPreferences.getInstance();
     prefs.setString('verseOrderGameState', '${gameState.toJson()}');
+
+    // Also save to Supabase
+    try {
+      final stats = GameStats(
+        gameName: 'Verse Order',
+        level: gameState.level,
+        score: gameState.score,
+        maxStreak: gameState.maxStreak,
+        totalGames: 0,
+        lastPlayed: DateTime.now(),
+      );
+      await _gameStatsRepository.saveGameStats(stats);
+    } catch (e) {
+      // If Supabase fails, continue with local save
+    }
   }
 
   void _showFeedbackDialog({
@@ -402,8 +421,8 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
             title: const Text('Verse Order'),
             centerTitle: true,
             elevation: 0,
-            backgroundColor: Colors.transparent,
-            foregroundColor: Colors.black,
+            backgroundColor: Colors.orange,
+
             actions: [
               Padding(
                 padding: const EdgeInsets.all(8),
@@ -441,8 +460,8 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Colors.blue.shade50,
-                  Colors.purple.shade50,
+                  Colors.orange.shade50,
+                  Colors.orange.shade100,
                   Colors.orange.shade50,
                 ],
               ),

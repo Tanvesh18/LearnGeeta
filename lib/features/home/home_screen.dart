@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:learngeetagames/core/constants/colors.dart';
 
 import '../../core/app_dependencies.dart';
-import '../../core/constants/colors.dart';
+
 import '../../core/models/game_definition.dart';
 import '../../core/utils/xp_policy.dart';
 import '../../core/widgets/app_gradient_scaffold.dart';
@@ -285,7 +286,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 onPressed: () => Navigator.of(context).pop(),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.saffron,
-                  foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),

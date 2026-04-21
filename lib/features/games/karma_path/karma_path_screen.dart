@@ -4,6 +4,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/app_dependencies.dart';
+import '../../../core/models/game_stats.dart';
+import '../../../features/progress/repositories/game_stats_repository.dart';
 import 'models/karma_path_model.dart';
 
 class KarmaPathScreen extends StatefulWidget {
@@ -20,10 +22,12 @@ class _KarmaPathScreenState extends State<KarmaPathScreen> {
   bool isEnding = false;
   GameEnding? endingCard;
   int _lastEndingXp = 0;
+  late IGameStatsRepository _gameStatsRepository;
 
   @override
   void initState() {
     super.initState();
+    _gameStatsRepository = GameStatsRepository();
     _initializeGame();
   }
 
@@ -116,6 +120,21 @@ class _KarmaPathScreenState extends State<KarmaPathScreen> {
   Future<void> _saveGameState() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('karmaPathGameState', jsonEncode(gameState.toJson()));
+
+    // Also save to Supabase
+    try {
+      final stats = GameStats(
+        gameName: 'Karma Path',
+        level: 1, // Not leveled
+        score: gameState.score,
+        maxStreak: 0,
+        totalGames: prefs.getInt('karmaPathTotal') ?? 0,
+        lastPlayed: DateTime.now(),
+      );
+      await _gameStatsRepository.saveGameStats(stats);
+    } catch (e) {
+      // If Supabase fails, continue with local save
+    }
   }
 
   void _makeChoice(StoryChoice choice) async {
@@ -177,7 +196,7 @@ class _KarmaPathScreenState extends State<KarmaPathScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withValues(alpha: 0.1),
+                  color: Colors.deepOrange.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -206,7 +225,7 @@ class _KarmaPathScreenState extends State<KarmaPathScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.purple.withValues(alpha: 0.1),
+                  color: Colors.deepOrange.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -302,7 +321,7 @@ class _KarmaPathScreenState extends State<KarmaPathScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Karma Path Builder'),
-        backgroundColor: Colors.indigo.shade700,
+        backgroundColor: Colors.orange,
         elevation: 0,
         actions: [
           Padding(
@@ -335,7 +354,7 @@ class _KarmaPathScreenState extends State<KarmaPathScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.indigo.shade50, Colors.purple.shade50],
+            colors: [Colors.orange.shade50, Colors.deepOrange.shade100],
           ),
         ),
         child: SafeArea(
@@ -417,8 +436,8 @@ class _KarmaPathScreenState extends State<KarmaPathScreen> {
                               borderRadius: BorderRadius.circular(12),
                               gradient: LinearGradient(
                                 colors: [
-                                  Colors.indigo.shade600,
-                                  Colors.purple.shade600,
+                                  Colors.deepOrange.shade600,
+                                  Colors.orange.shade600,
                                 ],
                               ),
                             ),

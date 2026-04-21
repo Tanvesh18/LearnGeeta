@@ -19,7 +19,7 @@ class _ShlokaSpeedRunScreenState extends State<ShlokaSpeedRunScreen> {
   int roundScore = 0;
   int roundCombo = 0;
   late int timeRemaining;
-  late Timer gameTimer;
+  Timer? gameTimer;
   bool isReady = false;
   bool gameOver = false;
   bool answered = false;
@@ -30,12 +30,14 @@ class _ShlokaSpeedRunScreenState extends State<ShlokaSpeedRunScreen> {
   @override
   void initState() {
     super.initState();
-    _initializeGame();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeGame();
+    });
   }
 
   @override
   void dispose() {
-    gameTimer.cancel();
+    gameTimer?.cancel();
     super.dispose();
   }
 
@@ -79,20 +81,22 @@ class _ShlokaSpeedRunScreenState extends State<ShlokaSpeedRunScreen> {
       currentRound = currentRound.take(20).toList();
     }
 
-    setState(() {});
-    _startTimer();
+    if (mounted) {
+      setState(() {});
+    }
+    Future.microtask(() => _startTimer());
   }
 
   void _startTimer() {
     gameTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!gameOver) {
-        setState(() {
-          timeRemaining--;
-          if (timeRemaining <= 0) {
-            _endRound();
-          }
-        });
-      }
+      if (!mounted) return;
+
+      setState(() {
+        timeRemaining--;
+        if (timeRemaining <= 0) {
+          _endRound();
+        }
+      });
     });
   }
 
@@ -155,7 +159,7 @@ class _ShlokaSpeedRunScreenState extends State<ShlokaSpeedRunScreen> {
   }
 
   void _endRound() {
-    gameTimer.cancel();
+    gameTimer?.cancel();
 
     setState(() {
       gameOver = true;
@@ -317,7 +321,7 @@ class _ShlokaSpeedRunScreenState extends State<ShlokaSpeedRunScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Shloka Speed Run'),
-        backgroundColor: Colors.orange.shade700,
+        backgroundColor: Colors.orange,
         elevation: 0,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
@@ -343,131 +347,123 @@ class _ShlokaSpeedRunScreenState extends State<ShlokaSpeedRunScreen> {
           ),
         ),
         child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 24,
-                ),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: IntrinsicHeight(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            child: ListView(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Progress Bar
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Progress Bar
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Question ${currentQuestionIndex + 1}/${currentRound.length}',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Text(
-                                  'Combo: x${gameState.comboMultiplier}',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.orange,
-                                  ),
-                                ),
-                              ],
+                            Text(
+                              'Question ${currentQuestionIndex + 1}/${currentRound.length}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                            const SizedBox(height: 8),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: LinearProgressIndicator(
-                                value: progress,
-                                minHeight: 8,
-                                backgroundColor: Colors.grey.shade300,
-                                valueColor: const AlwaysStoppedAnimation(
-                                  Colors.orange,
-                                ),
+                            Text(
+                              'Combo: x${gameState.comboMultiplier}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.orange,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 24),
-                        // Question Card
-                        Card(
-                          elevation: 8,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              gradient: LinearGradient(
-                                colors: [
-                                  Colors.orange.shade600,
-                                  Colors.red.shade600,
-                                ],
-                              ),
+                        const SizedBox(height: 8),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: LinearProgressIndicator(
+                            value: progress,
+                            minHeight: 8,
+                            backgroundColor: Colors.grey.shade300,
+                            valueColor: const AlwaysStoppedAnimation(
+                              Colors.orange,
                             ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _getQuestionTypeLabel(currentQuestion.type),
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  currentQuestion.question,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 22),
-                        // Answer Options
-                        ...List.generate(
-                          currentQuestion.options.length,
-                          (index) => Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: _buildSpeedRunOptionButton(
-                              index,
-                              currentQuestion,
-                            ),
-                          ),
-                        ),
-                        const Spacer(),
-                        // Score Display
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.purple.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.purple.shade300),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              Text('Round Score: $roundScore'),
-                              Text('Correct: $roundCombo'),
-                            ],
                           ),
                         ),
                       ],
                     ),
-                  ),
+                    const SizedBox(height: 24),
+                    // Question Card
+                    Card(
+                      elevation: 8,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.orange.shade600,
+                              Colors.red.shade600,
+                            ],
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _getQuestionTypeLabel(currentQuestion.type),
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 12,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              currentQuestion.question,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 22),
+                    // Answer Options
+                    ...List.generate(
+                      currentQuestion.options.length,
+                      (index) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: _buildSpeedRunOptionButton(
+                          index,
+                          currentQuestion,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    // Score Display
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.purple.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.purple.shade300),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Text('Round Score: $roundScore'),
+                          Text('Correct: $roundCombo'),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              );
-            },
+              ],
+            ),
           ),
         ),
       ),
@@ -541,9 +537,11 @@ class _ShlokaSpeedRunScreenState extends State<ShlokaSpeedRunScreen> {
               ),
             ),
             const SizedBox(width: 12),
-            Expanded(
+            Flexible(
               child: Text(
                 question.options[index],
+                softWrap: true,
+                overflow: TextOverflow.visible,
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,

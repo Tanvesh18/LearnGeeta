@@ -388,7 +388,7 @@ class _BattlefieldDebateScreenState extends State<BattlefieldDebateScreen> {
                         Row(
                           children: [
                             const CircleAvatar(
-                              backgroundColor: Colors.blue,
+                              backgroundColor: Colors.orange,
                               child: Text(
                                 'A',
                                 style: TextStyle(
@@ -403,7 +403,7 @@ class _BattlefieldDebateScreenState extends State<BattlefieldDebateScreen> {
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.blue,
+                                color: Colors.orange,
                               ),
                             ),
                           ],

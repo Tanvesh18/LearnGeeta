@@ -5,6 +5,13 @@ class AppTheme {
   static ThemeData lightTheme = ThemeData(
     scaffoldBackgroundColor: AppColors.cream,
     primaryColor: AppColors.saffron,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: AppColors.saffron,
+      primary: AppColors.saffron,
+      surface: AppColors.cardColor,
+      error: AppColors.error,
+      brightness: Brightness.light,
+    ),
 
     appBarTheme: const AppBarTheme(
       backgroundColor: AppColors.saffron,
@@ -24,3 +31,4 @@ class AppTheme {
     useMaterial3: true,
   );
 }
+

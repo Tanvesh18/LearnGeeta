@@ -24,7 +24,6 @@ class _WheelOfGunasScreenState extends State<WheelOfGunasScreen>
   bool isCorrect = false;
   int _lastEarnedXp = 0;
   bool _isSpinning = false;
-  double _wheelRotation = 0.0;
 
   late ConfettiController _confettiController;
   final Set<String> _seenSituations = {};
@@ -36,6 +35,7 @@ class _WheelOfGunasScreenState extends State<WheelOfGunasScreen>
     _spinController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
+      upperBound: 12.0,
     );
     _confettiController = ConfettiController(
       duration: const Duration(seconds: 1),
@@ -84,9 +84,11 @@ class _WheelOfGunasScreenState extends State<WheelOfGunasScreen>
     }
 
     _seenSituations.add(currentSituation.situation);
-    selectedGuna = null;
-    hasAnswered = false;
-    isCorrect = false;
+    setState(() {
+      selectedGuna = null;
+      hasAnswered = false;
+      isCorrect = false;
+    });
     _spinWheel();
   }
 
@@ -101,13 +103,16 @@ class _WheelOfGunasScreenState extends State<WheelOfGunasScreen>
 
     final random = Random();
     final spins = 5 + random.nextInt(5); // 5-10 full rotations
-    final finalAngle = spins * 2 * pi + random.nextDouble() * 2 * pi;
+    final finalTurns = spins + random.nextDouble();
 
     _spinController.reset();
+    setState(() => _isSpinning = true);
     _spinController
-        .animateTo(finalAngle / (2 * pi), curve: Curves.decelerate)
-        .then((_) {
-          setState(() => _isSpinning = false);
+        .animateTo(finalTurns, curve: Curves.decelerate)
+        .whenComplete(() {
+          if (mounted) {
+            setState(() => _isSpinning = false);
+          }
         });
   }
 
@@ -169,7 +174,7 @@ class _WheelOfGunasScreenState extends State<WheelOfGunasScreen>
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: isCorrect ? Colors.green : Colors.orange,
+                    color: isCorrect ? AppColors.success : AppColors.saffron,
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -259,11 +264,11 @@ class _WheelOfGunasScreenState extends State<WheelOfGunasScreen>
         ],
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFFF3E5F5), Color(0xFFE1BEE7)],
+            colors: [AppColors.gradientStart, AppColors.gradientEnd],
           ),
         ),
         child: Stack(
@@ -294,7 +299,7 @@ class _WheelOfGunasScreenState extends State<WheelOfGunasScreen>
                       color: Colors.white,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
+                          color: AppColors.shadowColor,
                           blurRadius: 8,
                           offset: const Offset(0, 4),
                         ),
@@ -330,7 +335,7 @@ class _WheelOfGunasScreenState extends State<WheelOfGunasScreen>
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
+                          color: AppColors.shadowColor,
                           blurRadius: 8,
                           offset: const Offset(0, 4),
                         ),
@@ -460,7 +465,7 @@ class _WheelOfGunasScreenState extends State<WheelOfGunasScreen>
                 confettiController: _confettiController,
                 blastDirectionality: BlastDirectionality.explosive,
                 shouldLoop: false,
-                colors: const [Colors.purple, Colors.pink, Colors.blue],
+                colors: const [AppColors.saffron, AppColors.gold, Colors.white],
               ),
             ),
           ],

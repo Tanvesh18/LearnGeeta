@@ -3,6 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 import '../../../core/app_dependencies.dart';
 import '../../../core/constants/colors.dart';
+import '../../../core/models/game_stats.dart';
+import '../../../features/progress/repositories/game_stats_repository.dart';
 import 'models/shloka_model.dart';
 
 class ShlokaMatchScreen extends StatefulWidget {
@@ -22,10 +24,12 @@ class _ShlokaMatchScreenState extends State<ShlokaMatchScreen> {
   int _lastEarnedXp = 0;
   int remainingSeconds = 30;
   Timer? _timer;
+  late IGameStatsRepository _gameStatsRepository;
 
   @override
   void initState() {
     super.initState();
+    _gameStatsRepository = GameStatsRepository();
     _initializeGame();
   }
 
@@ -200,6 +204,21 @@ class _ShlokaMatchScreenState extends State<ShlokaMatchScreen> {
   Future<void> _saveGameState() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('shlokaMatchGameState', '${gameState.toJson()}');
+
+    // Also save to Supabase
+    try {
+      final stats = GameStats(
+        gameName: 'Shloka Match',
+        level: gameState.level,
+        score: gameState.score,
+        maxStreak: gameState.maxStreak,
+        totalGames: 0,
+        lastPlayed: DateTime.now(),
+      );
+      await _gameStatsRepository.saveGameStats(stats);
+    } catch (e) {
+      // If Supabase fails, continue with local save
+    }
   }
 
   void _restartLevel() {
@@ -225,8 +244,7 @@ class _ShlokaMatchScreenState extends State<ShlokaMatchScreen> {
         title: const Text('Shloka Match'),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.black,
+        backgroundColor: AppColors.saffron,
         actions: [
           Padding(
             padding: const EdgeInsets.all(8),
@@ -261,8 +279,8 @@ class _ShlokaMatchScreenState extends State<ShlokaMatchScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.blue.shade50,
-              Colors.purple.shade50,
+              Colors.orange.shade50,
+              Colors.orange.shade100,
               Colors.orange.shade50,
             ],
           ),

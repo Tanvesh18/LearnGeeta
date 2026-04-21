@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:confetti/confetti.dart';
 import '../../../core/app_dependencies.dart';
+import '../../../core/models/game_stats.dart';
+import '../../../features/progress/repositories/game_stats_repository.dart';
 import 'models/dharma_model.dart';
 
 class DharmaChoicesScreen extends StatefulWidget {
@@ -23,6 +25,7 @@ class _DharmaChoicesScreenState extends State<DharmaChoicesScreen> {
 
   late ConfettiController _confettiController;
   final Set<String> _seenSituations = {};
+  late IGameStatsRepository _gameStatsRepository;
 
   @override
   void initState() {
@@ -30,6 +33,7 @@ class _DharmaChoicesScreenState extends State<DharmaChoicesScreen> {
     _confettiController = ConfettiController(
       duration: const Duration(seconds: 1),
     );
+    _gameStatsRepository = GameStatsRepository();
     _initializeGame();
   }
 
@@ -213,6 +217,21 @@ class _DharmaChoicesScreenState extends State<DharmaChoicesScreen> {
     await prefs.setInt('dharmaStreak', gameState.streak);
     await prefs.setInt('dharmaLevel', gameState.level);
     await prefs.setInt('dharmaMaxStreak', gameState.maxStreak);
+
+    // Also save to Supabase
+    try {
+      final stats = GameStats(
+        gameName: 'Dharma Choices',
+        level: gameState.level,
+        score: gameState.score,
+        maxStreak: gameState.maxStreak,
+        totalGames: 0, // Not tracked
+        lastPlayed: DateTime.now(),
+      );
+      await _gameStatsRepository.saveGameStats(stats);
+    } catch (e) {
+      // If Supabase fails, continue with local save
+    }
   }
 
   @override
@@ -229,7 +248,8 @@ class _DharmaChoicesScreenState extends State<DharmaChoicesScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dharma Choices'),
+        centerTitle: true,
+        title: Text('Dharma Choices'),
         elevation: 0,
         actions: [
           Padding(
@@ -262,9 +282,9 @@ class _DharmaChoicesScreenState extends State<DharmaChoicesScreen> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Colors.purple.shade50,
-                  Colors.blue.shade50,
-                  Colors.green.shade50,
+                  Colors.orange.shade50,
+                  Colors.orange.shade100,
+                  Colors.orange.shade50,
                 ],
               ),
             ),

@@ -5,6 +5,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:confetti/confetti.dart';
 
 import '../../../core/app_dependencies.dart';
+import '../../../core/constants/colors.dart';
+import '../../../core/models/game_stats.dart';
+import '../../../features/progress/repositories/game_stats_repository.dart';
 import 'models/true_false_model.dart';
 
 class TrueFalseScreen extends StatefulWidget {
@@ -36,6 +39,7 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
   final Set<String> _asked = {};
 
   late ConfettiController _confettiController;
+  late GameStatsRepository _gameStatsRepository;
 
   @override
   void initState() {
@@ -43,6 +47,7 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
     _confettiController = ConfettiController(
       duration: const Duration(seconds: 1),
     );
+    _gameStatsRepository = GameStatsRepository();
     _initializeGame();
   }
 
@@ -186,6 +191,21 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
     await prefs.setInt('trueFalseTotal', totalAnswered);
     await prefs.setInt('trueFalseLevel', gameState.level);
     await prefs.setInt('trueFalseMaxStreak', gameState.maxStreak);
+
+    // Also save to Supabase
+    try {
+      final stats = GameStats(
+        gameName: 'True False',
+        level: gameState.level,
+        score: score,
+        maxStreak: gameState.maxStreak,
+        totalGames: totalAnswered,
+        lastPlayed: DateTime.now(),
+      );
+      await _gameStatsRepository.saveGameStats(stats);
+    } catch (e) {
+      // If Supabase fails, continue with local save
+    }
   }
 
   @override
@@ -199,8 +219,8 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
         centerTitle: true,
         title: Text('True or False'),
         elevation: 0,
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.black,
+        backgroundColor: Colors.orange,
+
         actions: [
           Padding(
             padding: const EdgeInsets.all(8),
@@ -232,9 +252,9 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Colors.blue.shade50,
-                  Colors.purple.shade50,
-                  Colors.orange.shade50,
+                  AppColors.gradientStart,
+                  AppColors.gradientEnd,
+                  AppColors.gradientStart,
                 ],
               ),
             ),
@@ -271,7 +291,9 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: remainingSeconds <= 5 ? Colors.red : Colors.blue,
+                        color: remainingSeconds <= 5
+                            ? AppColors.error
+                            : AppColors.saffron,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -303,6 +325,10 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
                     children: [
                       Expanded(
                         child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.saffron,
+                            foregroundColor: Colors.white,
+                          ),
                           onPressed: () => _answer(true),
                           child: const Text('True'),
                         ),
@@ -310,6 +336,10 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.saffron,
+                            foregroundColor: Colors.white,
+                          ),
                           onPressed: () => _answer(false),
                           child: const Text('False'),
                         ),
@@ -330,8 +360,8 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
                                 ),
                                 decoration: BoxDecoration(
                                   color: result!.startsWith('Correct')
-                                      ? Colors.green[100]
-                                      : Colors.red[100],
+                                      ? AppColors.success.withOpacity(0.2)
+                                      : AppColors.error.withOpacity(0.2),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Row(
@@ -342,8 +372,8 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
                                           ? Icons.check_circle
                                           : Icons.cancel,
                                       color: result!.startsWith('Correct')
-                                          ? Colors.green
-                                          : Colors.red,
+                                          ? AppColors.success
+                                          : AppColors.error,
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
