@@ -1,6 +1,5 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 import '../../../core/app_dependencies.dart';
 import '../../../core/constants/colors.dart';
@@ -35,23 +34,21 @@ class _ShlokaMatchScreenState extends State<ShlokaMatchScreen> {
   }
 
   Future<void> _initializeGame() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedState = prefs.getString('shlokaMatchGameState');
-
-    gameState = savedState != null
-        ? GameState.fromJson(
-            savedState.split(',').asMap().entries.fold(<String, dynamic>{}, (
-              map,
-              entry,
-            ) {
-              final parts = entry.value.split(':');
-              if (parts.length == 2) {
-                map[parts[0].trim()] = int.tryParse(parts[1].trim());
-              }
-              return map;
-            }),
-          )
-        : GameState();
+    try {
+      final remote = await _gameStatsRepository.fetchGameStats('Shloka Match');
+      if (remote != null) {
+        gameState = GameState(
+          level: remote.level,
+          score: remote.score,
+          streak: 0,
+          maxStreak: remote.maxStreak,
+        );
+      } else {
+        gameState = GameState();
+      }
+    } catch (_) {
+      gameState = GameState();
+    }
 
     _loadNewShloka();
     _startTimer();
@@ -202,10 +199,6 @@ class _ShlokaMatchScreenState extends State<ShlokaMatchScreen> {
   }
 
   Future<void> _saveGameState() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('shlokaMatchGameState', '${gameState.toJson()}');
-
-    // Also save to Supabase
     try {
       final stats = GameStats(
         gameName: 'Shloka Match',
@@ -216,9 +209,7 @@ class _ShlokaMatchScreenState extends State<ShlokaMatchScreen> {
         lastPlayed: DateTime.now(),
       );
       await _gameStatsRepository.saveGameStats(stats);
-    } catch (e) {
-      // If Supabase fails, continue with local save
-    }
+    } catch (_) {}
   }
 
   void _restartLevel() {

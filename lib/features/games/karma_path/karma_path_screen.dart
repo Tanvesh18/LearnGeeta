@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/app_dependencies.dart';
 import '../../../core/constants/colors.dart';
 import '../../../core/models/game_stats.dart';
@@ -52,9 +50,11 @@ class _KarmaPathScreenState extends State<KarmaPathScreen>
   }
 
   Future<void> _initGame() async {
-    final prefs = await SharedPreferences.getInstance();
-    final saved = prefs.getString('karmaPathGameState');
-    int totalGames = prefs.getInt('karmaPathTotal') ?? 0;
+    int totalGames = 0;
+    try {
+      final remote = await _gameStatsRepository.fetchGameStats('Karma Path');
+      totalGames = remote?.totalGames ?? 0;
+    } catch (_) {}
 
     gameState = GameState(
       level: 1,
@@ -122,14 +122,13 @@ class _KarmaPathScreenState extends State<KarmaPathScreen>
   }
 
   Future<void> _saveState() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('karmaPathGameState', jsonEncode(gameState.toJson()));
     try {
-      final total = (prefs.getInt('karmaPathTotal') ?? 0);
+      final existing = await _gameStatsRepository.fetchGameStats('Karma Path');
+      final total = existing?.totalGames ?? gameState.score;
       await _gameStatsRepository.saveGameStats(GameStats(
         gameName: 'Karma Path',
         level: 1,
-        score: gameState.score,
+        score: total,
         maxStreak: 0,
         totalGames: total,
         lastPlayed: DateTime.now(),
@@ -217,13 +216,15 @@ class _KarmaPathScreenState extends State<KarmaPathScreen>
                         Navigator.pop(context);
                         setState(() {
                           _journey.clear();
+                          final nextTotal = gameState.score + 1;
                           gameState = GameState(
                             level: 1,
-                            score: gameState.score + 1,
+                            score: nextTotal,
                             currentKarma: 0,
                             currentNodeId: _randomStart(),
                           );
                         });
+                        unawaited(_saveState());
                         _loadNode(gameState.currentNodeId, animate: false);
                       },
                       style: ElevatedButton.styleFrom(

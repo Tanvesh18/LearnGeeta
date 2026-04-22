@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:confetti/confetti.dart';
 import '../../../core/app_dependencies.dart';
 import '../../../core/constants/colors.dart';
@@ -40,13 +39,23 @@ class _DharmaChoicesScreenState extends State<DharmaChoicesScreen> {
   }
 
   Future<void> _initializeGame() async {
-    final prefs = await SharedPreferences.getInstance();
-    gameState = GameState(
-      level: prefs.getInt('dharmaLevel') ?? 1,
-      score: prefs.getInt('dharmaScore') ?? 0,
-      streak: prefs.getInt('dharmaStreak') ?? 0,
-      maxStreak: prefs.getInt('dharmaMaxStreak') ?? 0,
-    );
+    try {
+      final remote = await _gameStatsRepository.fetchGameStats(
+        'Dharma Choices',
+      );
+      if (remote != null) {
+        gameState = GameState(
+          level: remote.level,
+          score: remote.score,
+          streak: 0,
+          maxStreak: remote.maxStreak,
+        );
+      } else {
+        gameState = GameState();
+      }
+    } catch (_) {
+      gameState = GameState();
+    }
     _seenSituations.clear();
     _loadNewSituation();
     setState(() => _isLoading = false);
@@ -215,13 +224,6 @@ class _DharmaChoicesScreenState extends State<DharmaChoicesScreen> {
   }
 
   Future<void> _saveGameState() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('dharmaScore', gameState.score);
-    await prefs.setInt('dharmaStreak', gameState.streak);
-    await prefs.setInt('dharmaLevel', gameState.level);
-    await prefs.setInt('dharmaMaxStreak', gameState.maxStreak);
-
-    // Also save to Supabase
     try {
       final stats = GameStats(
         gameName: 'Dharma Choices',
@@ -232,9 +234,7 @@ class _DharmaChoicesScreenState extends State<DharmaChoicesScreen> {
         lastPlayed: DateTime.now(),
       );
       await _gameStatsRepository.saveGameStats(stats);
-    } catch (e) {
-      // If Supabase fails, continue with local save
-    }
+    } catch (_) {}
   }
 
   @override

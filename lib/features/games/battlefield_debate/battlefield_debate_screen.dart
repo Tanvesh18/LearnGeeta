@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:confetti/confetti.dart';
 import '../../../core/app_dependencies.dart';
 import '../../../core/constants/colors.dart';
+import '../../../core/models/game_stats.dart';
+import '../../../features/progress/repositories/game_stats_repository.dart';
 import 'models/debate_model.dart';
 
 class BattlefieldDebateScreen extends StatefulWidget {
@@ -17,6 +18,7 @@ class BattlefieldDebateScreen extends StatefulWidget {
 
 class _BattlefieldDebateScreenState extends State<BattlefieldDebateScreen> {
   late GameState gameState;
+  late IGameStatsRepository _gameStatsRepository;
   bool _isLoading = true;
   late DebateScenario currentScenario;
   List<DebateOption> shuffledOptions = [];
@@ -34,6 +36,7 @@ class _BattlefieldDebateScreenState extends State<BattlefieldDebateScreen> {
   @override
   void initState() {
     super.initState();
+    _gameStatsRepository = GameStatsRepository();
     _confettiController = ConfettiController(
       duration: const Duration(seconds: 1),
     );
@@ -48,13 +51,23 @@ class _BattlefieldDebateScreenState extends State<BattlefieldDebateScreen> {
   }
 
   Future<void> _initializeGame() async {
-    final prefs = await SharedPreferences.getInstance();
-    gameState = GameState(
-      level: prefs.getInt('battlefieldDebateLevel') ?? 1,
-      score: prefs.getInt('battlefieldDebateScore') ?? 0,
-      streak: prefs.getInt('battlefieldDebateStreak') ?? 0,
-      maxStreak: prefs.getInt('battlefieldDebateMaxStreak') ?? 0,
-    );
+    try {
+      final remote = await _gameStatsRepository.fetchGameStats(
+        'Battlefield Debate',
+      );
+      if (remote != null) {
+        gameState = GameState(
+          level: remote.level,
+          score: remote.score,
+          streak: 0,
+          maxStreak: remote.maxStreak,
+        );
+      } else {
+        gameState = GameState();
+      }
+    } catch (_) {
+      gameState = GameState();
+    }
     _seenScenarios.clear();
     _loadNewScenario();
     setState(() => _isLoading = false);
@@ -173,11 +186,18 @@ class _BattlefieldDebateScreenState extends State<BattlefieldDebateScreen> {
   }
 
   Future<void> _saveGameState() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('battlefieldDebateLevel', gameState.level);
-    await prefs.setInt('battlefieldDebateScore', gameState.score);
-    await prefs.setInt('battlefieldDebateStreak', gameState.streak);
-    await prefs.setInt('battlefieldDebateMaxStreak', gameState.maxStreak);
+    try {
+      await _gameStatsRepository.saveGameStats(
+        GameStats(
+          gameName: 'Battlefield Debate',
+          level: gameState.level,
+          score: gameState.score,
+          maxStreak: gameState.maxStreak,
+          totalGames: 0,
+          lastPlayed: DateTime.now(),
+        ),
+      );
+    } catch (_) {}
   }
 
   void _showResultDialog() {

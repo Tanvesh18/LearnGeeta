@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:confetti/confetti.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 import 'dart:math';
 import '../../../core/app_dependencies.dart';
@@ -59,19 +58,19 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
   }
 
   Future<void> _initializeGame() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedStateJson = prefs.getString('verseOrderGameState');
-
-    if (savedStateJson != null) {
-      gameState = GameState.fromJson(
-        Map<String, dynamic>.from({
-          'level': 1,
-          'score': 0,
-          'streak': 0,
-          'maxStreak': 0,
-        }),
-      );
-    } else {
+    try {
+      final remote = await _gameStatsRepository.fetchGameStats('Verse Order');
+      if (remote != null) {
+        gameState = GameState(
+          level: remote.level,
+          score: remote.score,
+          streak: 0,
+          maxStreak: remote.maxStreak,
+        );
+      } else {
+        gameState = GameState();
+      }
+    } catch (_) {
       gameState = GameState();
     }
 
@@ -274,10 +273,6 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
   }
 
   Future<void> _saveGameState() async {
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setString('verseOrderGameState', '${gameState.toJson()}');
-
-    // Also save to Supabase
     try {
       final stats = GameStats(
         gameName: 'Verse Order',
@@ -288,9 +283,7 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
         lastPlayed: DateTime.now(),
       );
       await _gameStatsRepository.saveGameStats(stats);
-    } catch (e) {
-      // If Supabase fails, continue with local save
-    }
+    } catch (_) {}
   }
 
   void _showFeedbackDialog({

@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:confetti/confetti.dart';
 
 import '../../../core/app_dependencies.dart';
@@ -54,16 +53,24 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
   }
 
   Future<void> _initializeGame() async {
-    final prefs = await SharedPreferences.getInstance();
-    gameState = GameState(
-      level: prefs.getInt('trueFalseLevel') ?? 1,
-      score: prefs.getInt('trueFalseScore') ?? 0,
-      streak: prefs.getInt('trueFalseStreak') ?? 0,
-      maxStreak: prefs.getInt('trueFalseMaxStreak') ?? 0,
-    );
+    try {
+      final remote = await _gameStatsRepository.fetchGameStats('True False');
+      if (remote != null) {
+        gameState = GameState(
+          level: remote.level,
+          score: remote.score,
+          streak: 0,
+          maxStreak: remote.maxStreak,
+        );
+        totalAnswered = remote.totalGames;
+      } else {
+        gameState = GameState();
+      }
+    } catch (_) {
+      gameState = GameState();
+    }
     score = gameState.score;
     streak = gameState.streak;
-    totalAnswered = prefs.getInt('trueFalseTotal') ?? 0;
     _pickRandomQuestion();
     _startTimer();
     setState(() {
@@ -189,14 +196,6 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
   }
 
   Future<void> _saveGameState() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('trueFalseScore', score);
-    await prefs.setInt('trueFalseStreak', streak);
-    await prefs.setInt('trueFalseTotal', totalAnswered);
-    await prefs.setInt('trueFalseLevel', gameState.level);
-    await prefs.setInt('trueFalseMaxStreak', gameState.maxStreak);
-
-    // Also save to Supabase
     try {
       final stats = GameStats(
         gameName: 'True False',
@@ -207,9 +206,7 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
         lastPlayed: DateTime.now(),
       );
       await _gameStatsRepository.saveGameStats(stats);
-    } catch (e) {
-      // If Supabase fails, continue with local save
-    }
+    } catch (_) {}
   }
 
   @override

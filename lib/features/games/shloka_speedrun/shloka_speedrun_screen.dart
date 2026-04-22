@@ -1,9 +1,9 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 import '../../../core/app_dependencies.dart';
 import '../../../core/constants/colors.dart';
+import '../../../core/models/game_stats.dart';
+import '../../../features/progress/repositories/game_stats_repository.dart';
 import 'models/shloka_speedrun_model.dart';
 
 class ShlokaSpeedRunScreen extends StatefulWidget {
@@ -15,6 +15,7 @@ class ShlokaSpeedRunScreen extends StatefulWidget {
 
 class _ShlokaSpeedRunScreenState extends State<ShlokaSpeedRunScreen> {
   late GameState gameState;
+  late IGameStatsRepository _gameStatsRepository;
   late List<SpeedRunQuestion> currentRound;
   int currentQuestionIndex = 0;
   int roundScore = 0;
@@ -31,6 +32,7 @@ class _ShlokaSpeedRunScreenState extends State<ShlokaSpeedRunScreen> {
   @override
   void initState() {
     super.initState();
+    _gameStatsRepository = GameStatsRepository();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeGame();
     });
@@ -43,17 +45,21 @@ class _ShlokaSpeedRunScreenState extends State<ShlokaSpeedRunScreen> {
   }
 
   Future<void> _initializeGame() async {
-    final prefs = await SharedPreferences.getInstance();
-    final speedRunJson = prefs.getString('speedRunGameState');
-
-    if (speedRunJson != null) {
-      try {
-        final data = jsonDecode(speedRunJson) as Map<String, dynamic>;
-        gameState = GameState.fromJson(data);
-      } catch (_) {
+    try {
+      final remote = await _gameStatsRepository.fetchGameStats(
+        'Shloka Speed Run',
+      );
+      if (remote != null) {
+        gameState = GameState(
+          level: remote.level,
+          score: remote.score,
+          streak: 0,
+          maxStreak: remote.maxStreak,
+        );
+      } else {
         gameState = GameState(level: 1, score: 0, streak: 0, maxStreak: 0);
       }
-    } else {
+    } catch (_) {
       gameState = GameState(level: 1, score: 0, streak: 0, maxStreak: 0);
     }
 
@@ -102,8 +108,18 @@ class _ShlokaSpeedRunScreenState extends State<ShlokaSpeedRunScreen> {
   }
 
   Future<void> _saveGameState() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('speedRunGameState', jsonEncode(gameState.toJson()));
+    try {
+      await _gameStatsRepository.saveGameStats(
+        GameStats(
+          gameName: 'Shloka Speed Run',
+          level: gameState.level,
+          score: gameState.score,
+          maxStreak: gameState.maxStreak,
+          totalGames: 0,
+          lastPlayed: DateTime.now(),
+        ),
+      );
+    } catch (_) {}
   }
 
   void _answerQuestion(int index) {

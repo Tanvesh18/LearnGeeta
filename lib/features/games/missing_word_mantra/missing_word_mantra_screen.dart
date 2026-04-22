@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:confetti/confetti.dart';
 import '../../../core/app_dependencies.dart';
 import '../../../core/constants/colors.dart';
+import '../../../core/models/game_stats.dart';
+import '../../../features/progress/repositories/game_stats_repository.dart';
 import 'models/mantra_model.dart';
 
 class MissingWordMantraScreen extends StatefulWidget {
@@ -17,6 +18,7 @@ class MissingWordMantraScreen extends StatefulWidget {
 
 class _MissingWordMantraScreenState extends State<MissingWordMantraScreen> {
   late GameState gameState;
+  late IGameStatsRepository _gameStatsRepository;
   bool _isLoading = true;
   late MantraData currentMantra;
   final List<TextEditingController> _controllers = [];
@@ -33,6 +35,7 @@ class _MissingWordMantraScreenState extends State<MissingWordMantraScreen> {
   @override
   void initState() {
     super.initState();
+    _gameStatsRepository = GameStatsRepository();
     _confettiController = ConfettiController(
       duration: const Duration(seconds: 1),
     );
@@ -53,13 +56,23 @@ class _MissingWordMantraScreenState extends State<MissingWordMantraScreen> {
   }
 
   Future<void> _initializeGame() async {
-    final prefs = await SharedPreferences.getInstance();
-    gameState = GameState(
-      level: prefs.getInt('missingWordLevel') ?? 1,
-      score: prefs.getInt('missingWordScore') ?? 0,
-      streak: prefs.getInt('missingWordStreak') ?? 0,
-      maxStreak: prefs.getInt('missingWordMaxStreak') ?? 0,
-    );
+    try {
+      final remote = await _gameStatsRepository.fetchGameStats(
+        'Missing Word Mantra',
+      );
+      if (remote != null) {
+        gameState = GameState(
+          level: remote.level,
+          score: remote.score,
+          streak: 0,
+          maxStreak: remote.maxStreak,
+        );
+      } else {
+        gameState = GameState();
+      }
+    } catch (_) {
+      gameState = GameState();
+    }
     _seenMantras.clear();
     _loadNewMantra();
     setState(() => _isLoading = false);
@@ -159,11 +172,18 @@ class _MissingWordMantraScreenState extends State<MissingWordMantraScreen> {
   }
 
   Future<void> _saveGameState() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('missingWordLevel', gameState.level);
-    await prefs.setInt('missingWordScore', gameState.score);
-    await prefs.setInt('missingWordStreak', gameState.streak);
-    await prefs.setInt('missingWordMaxStreak', gameState.maxStreak);
+    try {
+      await _gameStatsRepository.saveGameStats(
+        GameStats(
+          gameName: 'Missing Word Mantra',
+          level: gameState.level,
+          score: gameState.score,
+          maxStreak: gameState.maxStreak,
+          totalGames: 0,
+          lastPlayed: DateTime.now(),
+        ),
+      );
+    } catch (_) {}
   }
 
   void _showResultDialog() {

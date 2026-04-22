@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:confetti/confetti.dart';
 import '../../../core/app_dependencies.dart';
 import '../../../core/constants/colors.dart';
+import '../../../core/models/game_stats.dart';
+import '../../../features/progress/repositories/game_stats_repository.dart';
 import 'models/quest_model.dart';
 
 class ChapterQuestScreen extends StatefulWidget {
@@ -16,6 +17,7 @@ class ChapterQuestScreen extends StatefulWidget {
 
 class _ChapterQuestScreenState extends State<ChapterQuestScreen> {
   late GameState gameState;
+  late IGameStatsRepository _gameStatsRepository;
   bool _isLoading = true;
   late QuestData currentQuest;
   int? selectedOptionIndex;
@@ -31,6 +33,7 @@ class _ChapterQuestScreenState extends State<ChapterQuestScreen> {
   @override
   void initState() {
     super.initState();
+    _gameStatsRepository = GameStatsRepository();
     _confettiController = ConfettiController(
       duration: const Duration(seconds: 1),
     );
@@ -45,13 +48,21 @@ class _ChapterQuestScreenState extends State<ChapterQuestScreen> {
   }
 
   Future<void> _initializeGame() async {
-    final prefs = await SharedPreferences.getInstance();
-    gameState = GameState(
-      level: prefs.getInt('chapterQuestLevel') ?? 1,
-      score: prefs.getInt('chapterQuestScore') ?? 0,
-      streak: prefs.getInt('chapterQuestStreak') ?? 0,
-      maxStreak: prefs.getInt('chapterQuestMaxStreak') ?? 0,
-    );
+    try {
+      final remote = await _gameStatsRepository.fetchGameStats('Chapter Quest');
+      if (remote != null) {
+        gameState = GameState(
+          level: remote.level,
+          score: remote.score,
+          streak: 0,
+          maxStreak: remote.maxStreak,
+        );
+      } else {
+        gameState = GameState();
+      }
+    } catch (_) {
+      gameState = GameState();
+    }
     _seenQuests.clear();
     _loadNewQuest();
     setState(() => _isLoading = false);
@@ -152,11 +163,18 @@ class _ChapterQuestScreenState extends State<ChapterQuestScreen> {
   }
 
   Future<void> _saveGameState() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('chapterQuestLevel', gameState.level);
-    await prefs.setInt('chapterQuestScore', gameState.score);
-    await prefs.setInt('chapterQuestStreak', gameState.streak);
-    await prefs.setInt('chapterQuestMaxStreak', gameState.maxStreak);
+    try {
+      await _gameStatsRepository.saveGameStats(
+        GameStats(
+          gameName: 'Chapter Quest',
+          level: gameState.level,
+          score: gameState.score,
+          maxStreak: gameState.maxStreak,
+          totalGames: 0,
+          lastPlayed: DateTime.now(),
+        ),
+      );
+    } catch (_) {}
   }
 
   void _showResultDialog() {

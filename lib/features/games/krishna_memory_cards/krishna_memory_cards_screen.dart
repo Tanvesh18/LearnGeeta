@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:confetti/confetti.dart';
 import '../../../core/app_dependencies.dart';
 import '../../../core/constants/colors.dart';
+import '../../../core/models/game_stats.dart';
+import '../../../features/progress/repositories/game_stats_repository.dart';
 import 'models/memory_model.dart';
 
 class KrishnaMemoryCardsScreen extends StatefulWidget {
@@ -17,6 +18,7 @@ class KrishnaMemoryCardsScreen extends StatefulWidget {
 
 class _KrishnaMemoryCardsScreenState extends State<KrishnaMemoryCardsScreen> {
   late GameState gameState;
+  late IGameStatsRepository _gameStatsRepository;
   bool _isLoading = true;
   List<MemoryCard> gameCards = [];
   List<bool> cardFlipped = [];
@@ -36,6 +38,7 @@ class _KrishnaMemoryCardsScreenState extends State<KrishnaMemoryCardsScreen> {
   @override
   void initState() {
     super.initState();
+    _gameStatsRepository = GameStatsRepository();
     _confettiController = ConfettiController(
       duration: const Duration(seconds: 1),
     );
@@ -50,13 +53,23 @@ class _KrishnaMemoryCardsScreenState extends State<KrishnaMemoryCardsScreen> {
   }
 
   Future<void> _initializeGame() async {
-    final prefs = await SharedPreferences.getInstance();
-    gameState = GameState(
-      level: prefs.getInt('memoryCardsLevel') ?? 1,
-      score: prefs.getInt('memoryCardsScore') ?? 0,
-      streak: prefs.getInt('memoryCardsStreak') ?? 0,
-      maxStreak: prefs.getInt('memoryCardsMaxStreak') ?? 0,
-    );
+    try {
+      final remote = await _gameStatsRepository.fetchGameStats(
+        'Krishna Memory Cards',
+      );
+      if (remote != null) {
+        gameState = GameState(
+          level: remote.level,
+          score: remote.score,
+          streak: 0,
+          maxStreak: remote.maxStreak,
+        );
+      } else {
+        gameState = GameState();
+      }
+    } catch (_) {
+      gameState = GameState();
+    }
     _seenPairs.clear();
     _loadNewGame();
     if (!mounted) return;
@@ -227,11 +240,19 @@ class _KrishnaMemoryCardsScreenState extends State<KrishnaMemoryCardsScreen> {
   }
 
   Future<void> _saveGameState() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('memoryCardsLevel', gameState.level);
-    await prefs.setInt('memoryCardsScore', gameState.score);
-    await prefs.setInt('memoryCardsStreak', gameState.streak);
-    await prefs.setInt('memoryCardsMaxStreak', gameState.maxStreak);
+    try {
+      final stats = GameStats(
+        gameName: 'Krishna Memory Cards',
+        level: gameState.level,
+        score: gameState.score,
+        maxStreak: gameState.maxStreak,
+        totalGames: 0,
+        lastPlayed: DateTime.now(),
+      );
+      await _gameStatsRepository.saveGameStats(stats);
+    } catch (_) {
+      // Supabase-only stats: intentionally no local fallback.
+    }
   }
 
   void _showResultDialog(bool completed) {

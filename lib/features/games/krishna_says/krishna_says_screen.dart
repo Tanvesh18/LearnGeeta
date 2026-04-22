@@ -1,10 +1,10 @@
-import 'dart:convert';
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/app_dependencies.dart';
 import '../../../core/constants/colors.dart';
+import '../../../core/models/game_stats.dart';
+import '../../../features/progress/repositories/game_stats_repository.dart';
 import 'models/krishna_says_model.dart';
 
 class KrishnaSaysScreen extends StatefulWidget {
@@ -17,6 +17,7 @@ class KrishnaSaysScreen extends StatefulWidget {
 class _KrishnaSaysScreenState extends State<KrishnaSaysScreen>
     with TickerProviderStateMixin {
   late GameState gameState;
+  late IGameStatsRepository _gameStatsRepository;
   late int currentQuestionIndex;
   late WisdomQuestion currentQuestion;
   bool isReady = false;
@@ -30,6 +31,7 @@ class _KrishnaSaysScreenState extends State<KrishnaSaysScreen>
   @override
   void initState() {
     super.initState();
+    _gameStatsRepository = GameStatsRepository();
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
@@ -49,17 +51,19 @@ class _KrishnaSaysScreenState extends State<KrishnaSaysScreen>
   }
 
   Future<void> _initializeGame() async {
-    final prefs = await SharedPreferences.getInstance();
-    final levelJson = prefs.getString('krishnaSaysGameState');
-
-    if (levelJson != null) {
-      try {
-        final data = jsonDecode(levelJson) as Map<String, dynamic>;
-        gameState = GameState.fromJson(data);
-      } catch (_) {
+    try {
+      final remote = await _gameStatsRepository.fetchGameStats('Krishna Says');
+      if (remote != null) {
+        gameState = GameState(
+          level: remote.level,
+          score: remote.score,
+          streak: 0,
+          maxStreak: remote.maxStreak,
+        );
+      } else {
         gameState = GameState(level: 1, score: 0, streak: 0, maxStreak: 0);
       }
-    } else {
+    } catch (_) {
       gameState = GameState(level: 1, score: 0, streak: 0, maxStreak: 0);
     }
 
@@ -89,11 +93,18 @@ class _KrishnaSaysScreenState extends State<KrishnaSaysScreen>
   }
 
   Future<void> _saveGameState() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-      'krishnaSaysGameState',
-      jsonEncode(gameState.toJson()),
-    );
+    try {
+      await _gameStatsRepository.saveGameStats(
+        GameStats(
+          gameName: 'Krishna Says',
+          level: gameState.level,
+          score: gameState.score,
+          maxStreak: gameState.maxStreak,
+          totalGames: 0,
+          lastPlayed: DateTime.now(),
+        ),
+      );
+    } catch (_) {}
   }
 
   void _answerQuestion(int index) {

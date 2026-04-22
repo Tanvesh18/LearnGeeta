@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:confetti/confetti.dart';
 import '../../../core/app_dependencies.dart';
 import '../../../core/constants/colors.dart';
+import '../../../core/models/game_stats.dart';
+import '../../../features/progress/repositories/game_stats_repository.dart';
 import 'models/wheel_model.dart';
 
 class WheelOfGunasScreen extends StatefulWidget {
@@ -17,6 +18,7 @@ class WheelOfGunasScreen extends StatefulWidget {
 class _WheelOfGunasScreenState extends State<WheelOfGunasScreen>
     with TickerProviderStateMixin {
   late GameState gameState;
+  late IGameStatsRepository _gameStatsRepository;
   bool _isLoading = true;
   WheelSituation? _currentSituation;
   GunaType? _selectedGuna;
@@ -33,6 +35,7 @@ class _WheelOfGunasScreenState extends State<WheelOfGunasScreen>
   @override
   void initState() {
     super.initState();
+    _gameStatsRepository = GameStatsRepository();
     _spinController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
@@ -50,13 +53,23 @@ class _WheelOfGunasScreenState extends State<WheelOfGunasScreen>
   }
 
   Future<void> _initializeGame() async {
-    final prefs = await SharedPreferences.getInstance();
-    gameState = GameState(
-      level: prefs.getInt('wheelGunasLevel') ?? 1,
-      score: prefs.getInt('wheelGunasScore') ?? 0,
-      streak: prefs.getInt('wheelGunasStreak') ?? 0,
-      maxStreak: prefs.getInt('wheelGunasMaxStreak') ?? 0,
-    );
+    try {
+      final remote = await _gameStatsRepository.fetchGameStats(
+        'Wheel of Gunas',
+      );
+      if (remote != null) {
+        gameState = GameState(
+          level: remote.level,
+          score: remote.score,
+          streak: 0,
+          maxStreak: remote.maxStreak,
+        );
+      } else {
+        gameState = GameState();
+      }
+    } catch (_) {
+      gameState = GameState();
+    }
     setState(() => _isLoading = false);
   }
 
@@ -133,11 +146,18 @@ class _WheelOfGunasScreenState extends State<WheelOfGunasScreen>
   }
 
   Future<void> _saveGameState() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('wheelGunasLevel', gameState.level);
-    await prefs.setInt('wheelGunasScore', gameState.score);
-    await prefs.setInt('wheelGunasStreak', gameState.streak);
-    await prefs.setInt('wheelGunasMaxStreak', gameState.maxStreak);
+    try {
+      await _gameStatsRepository.saveGameStats(
+        GameStats(
+          gameName: 'Wheel of Gunas',
+          level: gameState.level,
+          score: gameState.score,
+          maxStreak: gameState.maxStreak,
+          totalGames: 0,
+          lastPlayed: DateTime.now(),
+        ),
+      );
+    } catch (_) {}
   }
 
   void _showResultDialog() {

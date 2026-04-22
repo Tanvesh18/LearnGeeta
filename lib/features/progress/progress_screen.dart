@@ -5,7 +5,6 @@ import 'package:learngeetagames/core/models/game_stats.dart';
 import 'package:learngeetagames/core/models/user_progress.dart';
 import 'package:learngeetagames/core/utils/xp_policy.dart';
 import 'package:learngeetagames/core/widgets/app_gradient_scaffold.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'models/achievement.dart';
 import 'progress_repository.dart';
 import 'repositories/game_stats_repository.dart';
@@ -24,7 +23,6 @@ class _ProgressScreenState extends State<ProgressScreen> {
   GameStatsRepository? _gameStatsRepository;
   GameStatsService? _gameStatsService;
   AchievementsService? _achievementsService;
-  SharedPreferences? _prefs;
   bool _servicesReady = false;
   Future<ProgressData>? _dataFuture;
 
@@ -34,11 +32,23 @@ class _ProgressScreenState extends State<ProgressScreen> {
     _initServices();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (_servicesReady) {
+      setState(() {
+        _dataFuture = _loadData();
+      });
+    }
+  }
+
   Future<void> _initServices() async {
     _progressRepository = ProgressRepository();
     _gameStatsRepository = GameStatsRepository();
-    _prefs = await SharedPreferences.getInstance();
-    _gameStatsService = GameStatsService(gameStatsRepository: _gameStatsRepository!, prefs: _prefs!);
+    _gameStatsService = GameStatsService(
+      gameStatsRepository: _gameStatsRepository!,
+    );
     _achievementsService = AchievementsService();
     setState(() {
       _servicesReady = true;
@@ -49,7 +59,10 @@ class _ProgressScreenState extends State<ProgressScreen> {
   Future<ProgressData> _loadData() async {
     final progress = await _progressRepository!.fetchProgress();
     final gameStats = await _gameStatsService!.getAllGameStats();
-    final achievements = _achievementsService!.getAchievements(progress, gameStats);
+    final achievements = _achievementsService!.getAchievements(
+      progress,
+      gameStats,
+    );
     return ProgressData(progress, gameStats, achievements);
   }
 
@@ -63,12 +76,16 @@ class _ProgressScreenState extends State<ProgressScreen> {
         foregroundColor: Colors.white,
       ),
       body: !_servicesReady
-          ? const Center(child: CircularProgressIndicator(color: AppColors.saffron))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.saffron),
+            )
           : FutureBuilder<ProgressData>(
               future: _dataFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator(color: AppColors.saffron));
+                  return const Center(
+                    child: CircularProgressIndicator(color: AppColors.saffron),
+                  );
                 }
                 if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
@@ -92,7 +109,9 @@ class _ProgressScreenState extends State<ProgressScreen> {
           _buildSectionHeader('Games'),
           const SizedBox(height: 12),
           if (data.gameStats.isEmpty)
-            _buildEmptyState('No games played yet. Start playing to track your progress!')
+            _buildEmptyState(
+              'No games played yet. Start playing to track your progress!',
+            )
           else
             ...data.gameStats.map((stat) => _buildGameStatCard(stat)),
           const SizedBox(height: 24),
@@ -156,7 +175,10 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Level', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                    const Text(
+                      'Level',
+                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                    ),
                     Text(
                       title,
                       style: const TextStyle(
@@ -167,7 +189,10 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     ),
                     Text(
                       '${progress.xp} total XP',
-                      style: const TextStyle(color: Colors.white70, fontSize: 13),
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 13,
+                      ),
                     ),
                   ],
                 ),
@@ -194,7 +219,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
               ),
               Text(
                 '${(progressValue * 100).toStringAsFixed(0)}%',
-                style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
@@ -210,7 +239,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 8, offset: const Offset(0, 2)),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
       child: Row(
@@ -222,17 +255,26 @@ class _ProgressScreenState extends State<ProgressScreen> {
               color: AppColors.saffron.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-            child: const Center(child: Text('🔥', style: TextStyle(fontSize: 28))),
+            child: const Center(
+              child: Text('🔥', style: TextStyle(fontSize: 28)),
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Daily Streak', style: TextStyle(fontSize: 13, color: Colors.grey)),
+                const Text(
+                  'Daily Streak',
+                  style: TextStyle(fontSize: 13, color: Colors.grey),
+                ),
                 Text(
                   '${progress.streak} ${progress.streak == 1 ? 'day' : 'days'}',
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.deepBrown),
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.deepBrown,
+                  ),
                 ),
               ],
             ),
@@ -266,7 +308,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
         borderRadius: BorderRadius.circular(16),
       ),
       child: Center(
-        child: Text(message, textAlign: TextAlign.center, style: const TextStyle(color: Colors.grey)),
+        child: Text(
+          message,
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: Colors.grey),
+        ),
       ),
     );
   }
@@ -279,7 +325,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 6, offset: const Offset(0, 2)),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
       child: Row(
@@ -291,23 +341,46 @@ class _ProgressScreenState extends State<ProgressScreen> {
               color: AppColors.saffron.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Center(child: Text(_gameIcon(stat.gameName), style: const TextStyle(fontSize: 22))),
+            child: Center(
+              child: Text(
+                _gameIcon(stat.gameName),
+                style: const TextStyle(fontSize: 22),
+              ),
+            ),
           ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(stat.gameName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                Text(
+                  stat.gameName,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    _statChip('Lvl ${stat.level}', AppColors.saffron.withValues(alpha: 0.15), AppColors.deepBrown),
+                    _statChip(
+                      'Lvl ${stat.level}',
+                      AppColors.saffron.withValues(alpha: 0.15),
+                      AppColors.deepBrown,
+                    ),
                     const SizedBox(width: 6),
-                    _statChip('${stat.score} pts', AppColors.gradientEnd, AppColors.deepBrown),
+                    _statChip(
+                      '${stat.score} pts',
+                      AppColors.gradientEnd,
+                      AppColors.deepBrown,
+                    ),
                     if (stat.maxStreak > 0) ...[
                       const SizedBox(width: 6),
-                      _statChip('🔥 ${stat.maxStreak}', Colors.orange.withValues(alpha: 0.12), Colors.orange.shade700),
+                      _statChip(
+                        '🔥 ${stat.maxStreak}',
+                        Colors.orange.withValues(alpha: 0.12),
+                        Colors.orange.shade700,
+                      ),
                     ],
                   ],
                 ),
@@ -322,26 +395,45 @@ class _ProgressScreenState extends State<ProgressScreen> {
   Widget _statChip(String label, Color bg, Color fg) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(6)),
-      child: Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: fg)),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: fg),
+      ),
     );
   }
 
   String _gameIcon(String gameName) {
     switch (gameName) {
-      case 'True False': return '⚖️';
-      case 'Verse Order': return '📜';
-      case 'Shloka Match': return '🔗';
-      case 'Wheel of Gunas': return '🔄';
-      case 'Dharma Choices': return '🧭';
-      case 'Krishna Says': return '🪈';
-      case 'Chapter Quest': return '📚';
-      case 'Missing Word Mantra': return '🔤';
-      case 'Shloka Speed Run': return '⚡';
-      case 'Karma Path': return '🛤️';
-      case 'Krishna Memory Cards': return '🃏';
-      case 'Battlefield Debate': return '🏹';
-      default: return '🎮';
+      case 'True False':
+        return '⚖️';
+      case 'Verse Order':
+        return '📜';
+      case 'Shloka Match':
+        return '🔗';
+      case 'Wheel of Gunas':
+        return '🔄';
+      case 'Dharma Choices':
+        return '🧭';
+      case 'Krishna Says':
+        return '🪈';
+      case 'Chapter Quest':
+        return '📚';
+      case 'Missing Word Mantra':
+        return '🔤';
+      case 'Shloka Speed Run':
+        return '⚡';
+      case 'Karma Path':
+        return '🛤️';
+      case 'Krishna Memory Cards':
+        return '🃏';
+      case 'Battlefield Debate':
+        return '🏹';
+      default:
+        return '🎮';
     }
   }
 
@@ -361,7 +453,10 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 Expanded(child: Divider(color: Colors.grey.shade300)),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Text('${locked.length} locked', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                  child: Text(
+                    '${locked.length} locked',
+                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
                 ),
                 Expanded(child: Divider(color: Colors.grey.shade300)),
               ],
@@ -384,14 +479,23 @@ class _ProgressScreenState extends State<ProgressScreen> {
             ? Border.all(color: AppColors.gold.withValues(alpha: 0.4))
             : Border.all(color: Colors.grey.shade200),
         boxShadow: achievement.unlocked
-            ? [BoxShadow(color: AppColors.gold.withValues(alpha: 0.1), blurRadius: 6, offset: const Offset(0, 2))]
+            ? [
+                BoxShadow(
+                  color: AppColors.gold.withValues(alpha: 0.1),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ]
             : null,
       ),
       child: Row(
         children: [
           Text(
             achievement.unlocked ? achievement.emoji : '🔒',
-            style: TextStyle(fontSize: 28, color: achievement.unlocked ? null : const Color(0xFFCCCCCC)),
+            style: TextStyle(
+              fontSize: 28,
+              color: achievement.unlocked ? null : const Color(0xFFCCCCCC),
+            ),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -403,7 +507,9 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
-                    color: achievement.unlocked ? AppColors.deepBrown : Colors.grey,
+                    color: achievement.unlocked
+                        ? AppColors.deepBrown
+                        : Colors.grey,
                   ),
                 ),
                 const SizedBox(height: 3),
@@ -411,7 +517,9 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   achievement.description,
                   style: TextStyle(
                     fontSize: 12,
-                    color: achievement.unlocked ? Colors.grey.shade600 : Colors.grey.shade400,
+                    color: achievement.unlocked
+                        ? Colors.grey.shade600
+                        : Colors.grey.shade400,
                   ),
                 ),
               ],
