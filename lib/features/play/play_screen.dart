@@ -163,6 +163,7 @@ class _GameCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         child: Container(
           decoration: BoxDecoration(
+            color: Colors.white,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
@@ -174,26 +175,28 @@ class _GameCard extends StatelessWidget {
           ),
           child: Stack(
             children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      game.icon,
-                      size: 40,
-                      color: unlocked ? AppColors.saffron : Colors.grey,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      game.title,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: unlocked ? Colors.black : Colors.grey,
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        game.icon,
+                        size: 40,
+                        color: unlocked ? AppColors.saffron : Colors.grey,
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 12),
+                      Text(
+                        game.title,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: unlocked ? Colors.black : Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               if (!unlocked)

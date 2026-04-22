@@ -38,6 +38,8 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
   // keep track of asked questions so we don't repeat until cycle complete
   final Set<String> _asked = {};
 
+  bool _hasAnswered = false;
+
   late ConfettiController _confettiController;
   late GameStatsRepository _gameStatsRepository;
 
@@ -81,6 +83,7 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
     question = picked.statement;
     correctAnswer = picked.isTrue;
     result = null;
+    _hasAnswered = false;
     _asked.add(question);
     remainingSeconds = 15 - (gameState.level ~/ 3); // faster at higher levels
     remainingSeconds = remainingSeconds.clamp(5, 15);
@@ -88,17 +91,16 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
   }
 
   void _answer(bool choice) {
+    if (_hasAnswered) return;
     if (_timer?.isActive ?? false) _timer?.cancel();
     final isCorrect = choice == correctAnswer;
 
     setState(() {
+      _hasAnswered = true;
       totalAnswered++;
       if (isCorrect) {
         int points = 10 + (gameState.streak >= 3 ? 5 : 0);
-        // bonus for difficulty from database
-        final qobj = questionDatabase.firstWhere(
-          (q) => q.statement == question,
-        );
+        final qobj = questionDatabase.firstWhere((q) => q.statement == question);
         if (qobj.difficulty == 'hard') points += 5;
         score += points;
         streak++;
@@ -120,9 +122,14 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
 
     _saveGameState();
 
-    // if this was the last remaining question in the cycle
     if (_asked.length == questionDatabase.length) {
-      Future.microtask(() => _showCycleComplete());
+      Future.delayed(const Duration(milliseconds: 1500), () {
+        if (mounted) _showCycleComplete();
+      });
+    } else {
+      Future.delayed(const Duration(milliseconds: 1500), () {
+        if (mounted) setState(() { _pickRandomQuestion(); });
+      });
     }
   }
 
@@ -170,17 +177,14 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
 
   void _handleTimeExpired() {
     setState(() {
+      _hasAnswered = true;
       streak = 0;
       gameState = gameState.copyWith(streak: 0);
       result = 'Time up ⏰';
     });
     _saveGameState();
-    Future.delayed(const Duration(seconds: 1), () {
-      if (mounted) {
-        setState(() {
-          _pickRandomQuestion();
-        });
-      }
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (mounted) setState(() { _pickRandomQuestion(); });
     });
   }
 
@@ -327,7 +331,7 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
-                          onPressed: () => _answer(true),
+                          onPressed: _hasAnswered ? null : () => _answer(true),
                           child: const Text(
                             'True',
                             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -342,7 +346,7 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
-                          onPressed: () => _answer(false),
+                          onPressed: _hasAnswered ? null : () => _answer(false),
                           child: const Text(
                             'False',
                             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -355,52 +359,33 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 300),
                     child: result != null
-                        ? Column(
+                        ? Container(
                             key: ValueKey(result),
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 8,
-                                  horizontal: 16,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: result!.startsWith('Correct')
-                                      ? AppColors.success.withValues(alpha: 0.2)
-                                      : AppColors.error.withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      result!.startsWith('Correct')
-                                          ? Icons.check_circle
-                                          : Icons.cancel,
-                                      color: result!.startsWith('Correct')
-                                          ? AppColors.success
-                                          : AppColors.error,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      result!,
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                            decoration: BoxDecoration(
+                              color: result!.startsWith('Correct')
+                                  ? AppColors.success.withValues(alpha: 0.15)
+                                  : AppColors.error.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: result!.startsWith('Correct') ? AppColors.success : AppColors.error,
+                                width: 1.5,
                               ),
-                              const SizedBox(height: 12),
-                              TextButton(
-                                onPressed: () {
-                                  setState(() {
-                                    _pickRandomQuestion();
-                                  });
-                                },
-                                child: const Text('Next Question'),
-                              ),
-                            ],
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  result!.startsWith('Correct') ? Icons.check_circle : Icons.cancel,
+                                  color: result!.startsWith('Correct') ? AppColors.success : AppColors.error,
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  result!,
+                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
                           )
                         : const SizedBox.shrink(),
                   ),
