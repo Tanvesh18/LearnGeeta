@@ -1,0 +1,333 @@
+\documentclass[conference]{IEEEtran}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{array}
+\usepackage[hyphens]{url}
+\Urlmuskip=0mu plus 1mu\relax
+
+\begin{document}
+
+\title{LearnGeeta: A Flutter-Based Gamified Mobile Platform for Bhagavad Gita Learning}
+
+\author{
+\IEEEauthorblockN{1st Ranjeetsingh Suryawanshi}
+\IEEEauthorblockA{\textit{Dept. of Computer Science} \\
+\textit{Vishwakarma Institute of Technology} \\
+Pune, India \\
+ranjeetsingh.suryawanshi@vit.edu}
+\and
+\IEEEauthorblockN{2nd Tanvesh Deshmukh}
+\IEEEauthorblockA{\textit{Dept. of Computer Science} \\
+\textit{Vishwakarma Institute of Technology} \\
+Pune, India \\
+tanvesh.deshmukh24@vit.edu}
+\and
+\IEEEauthorblockN{3rd Aadi Joshi}
+\IEEEauthorblockA{\textit{Dept. of Computer Science} \\
+\textit{Vishwakarma Institute of Technology} \\
+Pune, India \\
+aadi.joshi24@vit.edu}
+\and
+\IEEEauthorblockN{4th Manav Sharma}
+\IEEEauthorblockA{\textit{Dept. of Computer Science} \\
+\textit{Vishwakarma Institute of Technology} \\
+Pune, India \\
+manav.sharma24@vit.edu}
+\and
+\IEEEauthorblockN{5th Yash Suryawanshi}
+\IEEEauthorblockA{\textit{Dept. of Computer Science} \\
+\textit{Vishwakarma Institute of Technology} \\
+Pune, India \\
+yash.suryawanshi24@vit.edu}
+}
+
+\maketitle
+
+\begin{abstract}
+This paper presents LearnGeeta, a Flutter mobile application for Bhagavad Gita learning that combines reading, audio support, and gamified practice. The implementation uses Supabase for authentication and progress persistence, local JSON assets for deterministic scripture delivery, and twelve game modes for recall, sequencing, ethical reasoning, and conceptual classification. We analyze the shipped system architecture, data flow, and reward logic directly from the codebase, then connect each subsystem to evidence from a curated set of fifteen downloaded research papers. The paper also formalizes core in-app algorithms, including level progression, streak updates, timer-driven rounds, and karma-based branching outcomes. The resulting analysis shows how LearnGeeta balances practical mobile constraints with pedagogy for Sanskrit and philosophy learning, while also identifying current limits such as sparse integration testing, no explicit spaced repetition scheduler, and tension between extrinsic rewards and intrinsic scripture study.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Flutter, mobile learning, gamification, Sanskrit learning, Bhagavad Gita, serious games, text to speech.
+\end{IEEEkeywords}
+
+\section{Introduction}
+Mobile learning systems can support daily study habits, but scripture learning adds specific requirements: reliable text integrity, language scaffolding, and motivation that lasts beyond novelty. LearnGeeta addresses this with a single app that combines reading and guided play. The app ships with chapter and verse content, transliteration, translation, text to speech playback, and a progression loop built around experience points (XP), levels, streaks, and achievements.
+
+The design direction matches current gamification and mobile learning findings in the downloaded literature pack [1], [5], [12], [14]. The app also uses scenario-based and decision-based game modes, aligning with branching and serious game evidence [2], [7], [8], [13]. For language and accessibility, the product applies multimodal presentation (text plus audio) supported by research on text to speech and Sanskrit digital learning contexts [3], [4], [9]. At the same time, the evidence is not one-sided: print-vs-digital retention tradeoffs remain important [6], and cognitive load needs active control in game design [11].
+
+This paper contributes three things:
+\begin{itemize}
+\item A code-grounded architecture report for the current LearnGeeta implementation.
+\item A mathematical formulation of key progression and gameplay algorithms used in production code.
+\item A research-to-feature synthesis using all fifteen downloaded references [1]-[15].
+\end{itemize}
+
+\section{Reference corpus and methodology}
+The analysis uses the local LearnGeeta codebase, the included IEEE conference template, and a downloaded set of fifteen papers stored under the project reference pack. Selection was feature-driven: gamification impact [1], [5], [12], [14], branching pedagogy [2], serious game design [7], [8], [13], multimodal and text-to-speech support [3], Sanskrit learning context [4], [9], [10], cognitive load guidance [11], digital media retention tradeoffs [6], and adaptive platform outcomes [15].
+
+Instead of reporting a new user trial, this paper performs a system-level implementation study. Evidence is linked to concrete shipped features: authentication, reader flow, gameplay loops, progress persistence, and tests.
+
+\section{System architecture of LearnGeeta}
+\subsection{Technology stack}
+LearnGeeta is built in Flutter with a modular project structure. Core runtime dependencies include \textit{supabase\_flutter} for auth and cloud persistence, \textit{shared\_preferences} for local state, \textit{flutter\_tts} for audio playback, and \textit{flutter\_dotenv} for environment loading. The application entry point initializes Supabase and routes users through an authentication gate before loading the tabbed learning experience.
+
+\subsection{Layered design}
+The implementation follows a practical layered approach:
+\begin{itemize}
+\item Presentation layer: screens for Home, Learn, Play, and Progress.
+\item Controller/state layer: ChangeNotifier-based controllers for screen logic and sync events.
+\item Repository layer: auth, profile, progress, and content repositories.
+\item Data layer: local Bhagavad Gita JSON corpus plus Supabase tables for progress and game stats.
+\end{itemize}
+
+A static dependency container wires repositories and services. XP award operations trigger progress sync notifications so level-up events propagate to UI without tight coupling.
+
+\begin{figure}[t]
+\centering
+\fbox{\parbox{0.46\textwidth}{
+\centering
+\textbf{LearnGeeta runtime flow} \\
+\vspace{2pt}
+Sign in/up (Supabase) -> Home dashboard \\
+-> Learn module (chapter/verse reader + TTS) \\
+-> Play module (12 game modes) \\
+-> XP + streak + achievements update \\
+-> Progress screen and next session loop
+}}
+\caption{High-level application flow implemented in the current release.}
+\label{fig:runtimeflow}
+\end{figure}
+
+\subsection{Content and learning pipeline}
+Scripture data is loaded from a local JSON file containing 18 chapters and verse-level fields (text, transliteration, word meanings, and translation arrays). The repository includes fallback handling in case JSON loading fails. This local corpus avoids runtime content drift and keeps scripture output deterministic, a practical response to concerns raised in Sanskrit AI tooling discussions [10].
+
+The Learn module persists bookmarks (last chapter and verse) in local storage. This supports short recurring study sessions rather than requiring long uninterrupted reading blocks.
+
+\subsection{Navigation and game composition}
+Bottom navigation uses an IndexedStack for stable tab state. The Play module registers twelve games:
+\begin{itemize}
+\item Shloka Match
+\item Verse Order
+\item True or False
+\item Dharma Choices
+\item Missing Word Mantra
+\item Chapter Quest
+\item Wheel of Gunas
+\item Krishna Memory Cards
+\item Battlefield Debate
+\item Krishna Says
+\item Shloka Speed Run
+\item Karma Path
+\end{itemize}
+
+This blend includes recall drills, sequence reconstruction, speed rounds, conceptual classification, and branching moral scenarios. That mix aligns with evidence that engagement gains are stronger when systems combine light gamification with deeper serious-game mechanics [7], [8], [13].
+
+\section{Mathematical and algorithmic formulation}
+This section formalizes the progression logic that is actually implemented.
+
+\subsection{Level function and XP accumulation}
+The global level is computed from total XP using a linear policy:
+\begin{equation}
+L(x) = \left\lfloor \frac{x}{100} \right\rfloor + 1,
+\label{eq:level}
+\end{equation}
+where $x$ is total accumulated XP.
+
+Each game awards XP with rule-specific bonuses. For example:
+\begin{equation}
+xp_{tf} = 10 + 5\,\mathbf{1}_{hard} + 5\,\mathbf{1}_{s \ge 3},
+\label{eq:tfxp}
+\end{equation}
+for True/False, and
+\begin{equation}
+xp_{sr} = 8\cdot\min(\max(m,1),3),
+\label{eq:srxp}
+\end{equation}
+for Shloka Speed Run, where $m$ is combo multiplier.
+
+In Karma Path, per-choice XP and ending XP are piecewise by karma score, with higher rewards for consistently sattvic choices.
+
+\subsection{Daily streak update rule}
+Let $s_t$ be streak on day $t$, and $\Delta d$ be whole-day distance from the last active date:
+\begin{equation}
+s_t=
+\begin{cases}
+1, & \text{first activity}, \\
+s_{t-1}+1, & \Delta d = 1, \\
+1, & \Delta d > 1, \\
+s_{t-1}, & \Delta d = 0.
+\end{cases}
+\label{eq:streak}
+\end{equation}
+
+This logic preserves same-day activity and resets only after missed days. The streak mechanism maps to habit-formation evidence [15] while still requiring UX safeguards against streak-loss frustration [6], [11].
+
+\subsection{Deterministic daily shloka indexing}
+Home screen uses a date-based index into a fixed shloka pool:
+\begin{equation}
+i_d = \left\lfloor \frac{t_d}{86{,}400{,}000} \right\rfloor \bmod N,
+\label{eq:dailyindex}
+\end{equation}
+where $t_d$ is day timestamp in milliseconds and $N$ is pool size. This gives stable day-level rotation without server calls.
+
+\begin{figure}[t]
+\centering
+\begin{minipage}{0.47\textwidth}
+\footnotesize
+\begin{algorithmic}[1]
+\STATE Fetch current progress $(xp, level, streak, last\_active)$
+\STATE Add earned XP: $xp \leftarrow xp + \Delta xp$
+\STATE Recompute level using \eqref{eq:level}
+\STATE Compute day difference $\Delta d$
+\IF{$\Delta d = 1$}
+  \STATE $streak \leftarrow streak + 1$
+\ELSIF{$\Delta d > 1$}
+  \STATE $streak \leftarrow 1$
+\ENDIF
+\STATE Persist updated progress to Supabase
+\STATE Notify UI listeners for progress and level-up events
+\end{algorithmic}
+\end{minipage}
+\caption{Progress update pipeline as implemented by repository plus XP service layers.}
+\label{fig:progressalgo}
+\end{figure}
+
+\subsection{Mode-specific loop tuning}
+\begin{table}[t]
+\caption{Examples of game loop parameters in current code}
+\label{tab:gameparams}
+\centering
+\footnotesize
+\begin{tabular}{|p{0.18\linewidth}|p{0.26\linewidth}|}
+\hline
+\textbf{Mode} & \textbf{Implemented rule} \\
+\hline
+Shloka Match & 30 s timer, difficulty by level bands (1-3 easy, 4-7 medium, 8+ hard), streak bonus tiers. \\
+\hline
+True/False & 15 s base timer with level-dependent reduction, non-repeating question cycle before reset. \\
+\hline
+Shloka Speed Run & 45 s round, question subset filtered by level, combo multiplier cycles across bounded range. \\
+\hline
+Karma Path & Randomized start node, signed karma accumulation, ending class selected by karma interval. \\
+\hline
+\end{tabular}
+\end{table}
+
+These loops match broad findings that immediate feedback, challenge scaling, and repeated retrieval improve engagement and retention [1], [5], [12], [14].
+
+\section{Feature-to-evidence mapping}
+Table \ref{tab:researchmap} summarizes how the app modules align with the downloaded references.
+
+\begin{table*}[t]
+\caption{Mapping of LearnGeeta modules to downloaded research evidence}
+\label{tab:researchmap}
+\centering
+\footnotesize
+\begin{tabular}{|p{0.18\linewidth}|p{0.47\linewidth}|p{0.24\linewidth}|}
+\hline
+\textbf{App subsystem} & \textbf{Why it matters in LearnGeeta} & \textbf{Primary downloaded references} \\
+\hline
+XP, levels, achievements, streaks & Sustains repeat usage and visible progression during long scripture learning timelines. & [1], [5], [12], [14], [15] \\
+\hline
+Branching and ethics games & Supports decision reasoning and consequence-based reflection, not only fact recall. & [2], [7], [8], [13] \\
+\hline
+Reader + transliteration + TTS & Reduces decoding friction for Sanskrit beginners and broadens accessibility. & [3], [4], [9] \\
+\hline
+Bhagavad Gita value framing & Connects technical design to emotional and cognitive development goals. & [10] \\
+\hline
+Cognitive load and pacing choices & Justifies timer, difficulty, and UI simplification tradeoffs in game rounds. & [11] \\
+\hline
+Digital-first delivery caveat & Warns that deep retention can differ from print workflows without active recall support. & [6] \\
+\hline
+\end{tabular}
+\end{table*}
+
+Together, these sources support the core design while also exposing risk areas: reward overemphasis, shallow streak behavior, and insufficient personalization if spacing and adaptation are not made explicit [6], [11], [15].
+
+\section{Implementation verification and quality status}
+\subsection{What is covered now}
+The repository includes unit and widget tests for important user-facing behavior:
+\begin{itemize}
+\item Auth controller checks password strength before backend calls and verifies successful sign-in behavior.
+\item Play screen test verifies that selecting a game card opens the expected screen.
+\item Bottom navigation test confirms IndexedStack state persistence across tab changes.
+\item Input widget test validates password field visibility toggle behavior.
+\end{itemize}
+
+This gives useful guardrails for auth and navigation regressions, which are common failure points in mobile apps.
+
+\subsection{Current technical limits}
+Three implementation gaps are visible from code inspection:
+\begin{itemize}
+\item No explicit spaced repetition scheduler that reintroduces verses by memory decay probability.
+\item Limited integration testing for Supabase sync, offline retries, and cross-device conflict behavior.
+\item Game content is largely static in local model files, which limits continuous curriculum updates.
+\end{itemize}
+
+These are practical next steps rather than architectural failures. The existing structure can support them with moderate refactoring.
+
+\section{Discussion}
+LearnGeeta shows a realistic pattern that many educational apps struggle to reach: it is not only a reader and not only a game hub. The shipped system links text study, audio support, and repeated retrieval practice in one flow. That is a strong base.
+
+The main design tension is philosophical and behavioral. Bhagavad Gita learning often emphasizes inner discipline, while mobile loops often rely on visible rewards. The app currently leans on XP and streaks to maintain consistency, which is effective for habit formation [1], [12], [14], [15], but should be balanced with lower-pressure study paths to avoid metric chasing [6], [11]. The reference set also suggests a direction for next iterations: explicit adaptive sequencing, richer scenario depth, and better handling of difficult verses instead of equal random exposure [2], [7], [8], [13].
+
+\section{Conclusion}
+This paper documented the LearnGeeta application as implemented, not as a hypothetical design. The app already integrates a meaningful combination of scripture content delivery, language support, gamified reinforcement, and cloud-backed progress tracking. Formal analysis of the code-level rules shows clear, deterministic progression logic and practical gameplay tuning.
+
+The downloaded research corpus supports most design decisions and also points to the next technical milestone: turning today\'s gamified practice into a more adaptive learning engine with robust offline-first testing and memory-aware scheduling. With those additions, LearnGeeta can move from a strong educational app to a high-confidence digital learning platform for sustained Bhagavad Gita study.
+
+\begin{thebibliography}{15}
+
+\bibitem{ref1}
+``Examining the effectiveness of gamification as a tool promoting teaching and learning in educational settings: a meta-analysis,'' PMC. [Online]. Available: \url{https://pmc.ncbi.nlm.nih.gov/articles/PMC10591086/}. [Accessed: Apr. 22, 2026].
+
+\bibitem{ref2}
+``Instructional design and its usability for branching model as an educational strategy,'' PMC. [Online]. Available: \url{https://pmc.ncbi.nlm.nih.gov/articles/PMC10276579/}. [Accessed: Apr. 22, 2026].
+
+\bibitem{ref3}
+``Does use of text-to-speech and related read-aloud tools improve reading comprehension for students with reading disabilities? A meta-analysis,'' PMC. [Online]. Available: \url{https://pmc.ncbi.nlm.nih.gov/articles/PMC5494021/}. [Accessed: Apr. 22, 2026].
+
+\bibitem{ref4}
+``START: Sanskrit teaching, annotation, and ...,'' ACL Anthology. [Online]. Available: \url{https://aclanthology.org/2024.iscls-1.9.pdf}. [Accessed: Apr. 22, 2026].
+
+\bibitem{ref5}
+``Analysing the impact of gamification techniques on enhancing learner engagement, motivation, and knowledge retention: a structural ...,'' Academic Publishing. [Online]. Available: \url{https://academic-publishing.org/index.php/ejel/article/download/3563/2314}. [Accessed: Apr. 22, 2026].
+
+\bibitem{ref6}
+``Foreign language vocabulary acquisition and retention in print text vs. digital media environments,'' MDPI. [Online]. Available: \url{https://www.mdpi.com/2079-8954/11/1/30}. [Accessed: Apr. 22, 2026].
+
+\bibitem{ref7}
+``What do we evaluate in serious games? A systematic review,'' Tecnologico de Monterrey repository. [Online]. Available: \url{https://repositorio.tec.mx/bitstreams/382cc36c-c43c-4f2d-aa2e-9880deada241/download}. [Accessed: Apr. 22, 2026].
+
+\bibitem{ref8}
+``Digital serious games for undergraduate nursing education: a review of serious games key design characteristics and gamification elements,'' MDPI. [Online]. Available: \url{https://www.mdpi.com/2078-2489/16/10/877}. [Accessed: Apr. 22, 2026].
+
+\bibitem{ref9}
+``Effectiveness of learning English words of Sanskrit origin as ...,'' ERIC. [Online]. Available: \url{https://files.eric.ed.gov/fulltext/EJ1401069.pdf}. [Accessed: Apr. 22, 2026].
+
+\bibitem{ref10}
+``The impact of Bhagavad Gita teachings on the cognitive ...,'' IJIRT. [Online]. Available: \url{https://ijirt.org/publishedpaper/IJIRT191643_PAPER.pdf}. [Accessed: Apr. 22, 2026].
+
+\bibitem{ref11}
+``Enhancing learning engagement: a study on gamification\'s influence on motivation and cognitive load,'' MDPI. [Online]. Available: \url{https://www.mdpi.com/2227-7102/14/10/1115}. [Accessed: Apr. 22, 2026].
+
+\bibitem{ref12}
+``Gamification in education and its impact on student academic ...,'' MDPI. [Online]. Available: \url{https://www.mdpi.com/1999-4893/19/2/143}. [Accessed: Apr. 22, 2026].
+
+\bibitem{ref13}
+``Serious video games: tools for learning, training and health,'' MDPI. [Online]. Available: \url{https://www.mdpi.com/2673-8392/6/4/83}. [Accessed: Apr. 22, 2026].
+
+\bibitem{ref14}
+``The impact of gamified learning on students\' learning engagement,'' Science Publishing Group. [Online]. Available: \url{https://www.sciencepublishinggroup.com/article/10.11648/j.edu.20251406.12}. [Accessed: Apr. 22, 2026].
+
+\bibitem{ref15}
+``Evaluating the effectiveness of a gamified and NLP-enhanced adaptive learning platform for engineering education,'' Cureus Journals. [Online]. Available: \url{https://www.cureusjournals.com/articles/3705-evaluating-the-effectiveness-of-a-gamified-and-nlp-enhanced-adaptive-learning-platform-for-engineering-education}. [Accessed: Apr. 22, 2026].
+
+\end{thebibliography}
+
+\end{document}
