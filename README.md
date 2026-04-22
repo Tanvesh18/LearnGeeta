@@ -65,8 +65,6 @@
 - **Data Flow**: Controllers fetch from Repositories → Supabase/Local JSON
 - **Navigation**: Direct `MaterialPageRoute` for games, `IndexedStack` for tabs
 
-## 📱 Screenshots
-*(Add your app screenshots here - Home, Games Grid, Gita Reader, Progress)*
 
 ## 🚀 Quick Start
 
