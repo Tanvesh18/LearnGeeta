@@ -84,23 +84,19 @@ The implementation follows a practical layered approach:
 \item Repository layer: auth, profile, progress, and content repositories.
 \item Data layer: local Bhagavad Gita JSON corpus plus Supabase tables for progress and game stats.
 \end{itemize}
-
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=0.48\textwidth]{images/LearnGeetaArchitectureSimple.png}
+\caption{System Architecture of LearnGeeta Application}
+\label{fig:architecture}
+\end{figure}
 A static dependency container wires repositories and services. XP award operations trigger progress sync notifications so level-up events propagate to UI without tight coupling.
 
-\begin{figure}[t]
+\begin{figure}[!ht]
 \centering
-\fbox{\parbox{0.46\textwidth}{
-\centering
-\textbf{LearnGeeta runtime flow} \\
-\vspace{2pt}
-Sign in/up (Supabase) -> Home dashboard \\
--> Learn module (chapter/verse reader + TTS) \\
--> Play module (12 game modes) \\
--> XP + streak + achievements update \\
--> Progress screen and next session loop
-}}
-\caption{High-level application flow implemented in the current release.}
-\label{fig:runtimeflow}
+\includegraphics[width=0.48\textwidth]{images/LearnGeetaERDiagramSimple.png}
+\caption{Entity Relationship Diagram of LearnGeeta Database}
+\label{fig:er}
 \end{figure}
 
 \subsection{Content and learning pipeline}
@@ -124,7 +120,12 @@ Bottom navigation uses an IndexedStack for stable tab state. The Play module reg
 \item Shloka Speed Run
 \item Karma Path
 \end{itemize}
-
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=0.48\textwidth]{images/LearnGeetaUseCaseSimple.png}
+\caption{Use Case Diagram of LearnGeeta Application}
+\label{fig:usecase}
+\end{figure}
 This blend includes recall drills, sequence reconstruction, speed rounds, conceptual classification, and branching moral scenarios. That mix aligns with evidence that engagement gains are stronger when systems combine light gamification with deeper serious-game mechanics [7], [8], [13].
 
 \section{Mathematical and algorithmic formulation}
