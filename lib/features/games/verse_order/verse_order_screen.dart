@@ -23,7 +23,7 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
   // Game state
   late GameState gameState;
   late Verse currentVerse;
-  late List<String> shuffledLines;
+  late List<int> shuffledOrder;
   Timer? countdownTimer;
   int remainingSeconds = 30;
   bool isAnswerChecked = false;
@@ -89,10 +89,10 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
 
     currentVerse =
         versesWithDifficulty[Random().nextInt(versesWithDifficulty.length)];
-    shuffledLines = _shuffleLines(currentVerse.lines);
+    shuffledOrder = _shuffleOrder(currentVerse.lines.length);
 
     // Check if shuffle equals original
-    if (shuffledLines.join() == currentVerse.lines.join()) {
+    if (_isInOriginalOrder(shuffledOrder)) {
       _loadNewVerse();
       return;
     }
@@ -112,10 +112,17 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
     return 'hard';
   }
 
-  List<String> _shuffleLines(List<String> lines) {
-    final shuffled = List<String>.from(lines);
+  List<int> _shuffleOrder(int length) {
+    final shuffled = List<int>.generate(length, (index) => index);
     shuffled.shuffle();
     return shuffled;
+  }
+
+  bool _isInOriginalOrder(List<int> order) {
+    for (int i = 0; i < order.length; i++) {
+      if (order[i] != i) return false;
+    }
+    return true;
   }
 
   void _startTimer() {
@@ -156,7 +163,7 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
     countdownTimer?.cancel();
     HapticFeedback.heavyImpact();
 
-    bool isCorrect = shuffledLines.join() == currentVerse.lines.join();
+    bool isCorrect = _isInOriginalOrder(shuffledOrder);
 
     setState(() {
       isCheckButtonDisabled = true;
@@ -422,7 +429,7 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
                           'L${gameState.level}',
                           style: const TextStyle(
                             fontSize: 10,
-                            color: Colors.grey,
+                            color: Colors.white70,
                           ),
                         ),
                         Text(
@@ -484,7 +491,7 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
                                   ),
                                 ),
                                 Text(
-                                  '$remainingSeconds"',
+                                  '${remainingSeconds}s',
                                   style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
@@ -582,13 +589,14 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
                       ReorderableListView(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
+                        buildDefaultDragHandles: false,
                         onReorder: (oldIndex, newIndex) {
                           setState(() {
                             if (newIndex > oldIndex) {
                               newIndex -= 1;
                             }
-                            final item = shuffledLines.removeAt(oldIndex);
-                            shuffledLines.insert(newIndex, item);
+                            final item = shuffledOrder.removeAt(oldIndex);
+                            shuffledOrder.insert(newIndex, item);
                             _slideController.forward().then((_) {
                               _slideController.reset();
                             });
@@ -596,9 +604,9 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
                           isCheckButtonDisabled = false;
                         },
                         children: [
-                          for (int i = 0; i < shuffledLines.length; i++)
+                          for (int i = 0; i < shuffledOrder.length; i++)
                             Container(
-                              key: ValueKey(i),
+                              key: ValueKey(shuffledOrder[i]),
                               margin: const EdgeInsets.only(bottom: 12),
                               child: ScaleTransition(
                                 scale: Tween<double>(
@@ -632,14 +640,17 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
                                   ),
                                   child: Row(
                                     children: [
-                                      Icon(
-                                        Icons.drag_handle,
-                                        color: AppColors.saffron,
+                                      ReorderableDragStartListener(
+                                        index: i,
+                                        child: const Icon(
+                                          Icons.drag_handle,
+                                          color: AppColors.saffron,
+                                        ),
                                       ),
                                       const SizedBox(width: 12),
                                       Expanded(
                                         child: Text(
-                                          shuffledLines[i],
+                                          currentVerse.lines[shuffledOrder[i]],
                                           style:
                                               GoogleFonts.notoSerifDevanagari(
                                                 fontSize: 16,
@@ -798,5 +809,5 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
   bool isAnswerCheckAndWrong(int index) =>
       isAnswerChecked &&
       !isAnswerCorrect &&
-      shuffledLines[index] != currentVerse.lines[index];
+      shuffledOrder[index] != index;
 }

@@ -59,33 +59,50 @@ class _KrishnaMemoryCardsScreenState extends State<KrishnaMemoryCardsScreen> {
     );
     _seenPairs.clear();
     _loadNewGame();
+    if (!mounted) return;
     setState(() => _isLoading = false);
   }
 
   void _loadNewGame() {
-    if (_seenPairs.length == memoryDatabase.length) {
+    final targetDifficulty = _getDifficultyForLevel(gameState.level);
+    final allAtDifficulty = memoryDatabase
+        .where((p) => p.card1.difficulty == targetDifficulty)
+        .toList();
+
+    if (allAtDifficulty.isEmpty) {
+      return;
+    }
+
+    if (_seenPairs.length >= allAtDifficulty.length) {
       _seenPairs.clear();
     }
 
-    final remaining = memoryDatabase
+    final unseenAtDifficulty = allAtDifficulty
         .where((p) => !_seenPairs.contains('${p.card1.id}_${p.card2.id}'))
-        .toList();
-
-    final targetDifficulty = _getDifficultyForLevel(gameState.level);
-    final matching = remaining
-        .where((p) => p.card1.difficulty == targetDifficulty)
         .toList();
 
     // Select 3-5 pairs based on level
     final pairCount = 3 + (gameState.level ~/ 2).clamp(0, 2); // 3-5 pairs
     final selectedPairs = <CardPair>[];
+    final random = Random();
+    final selectionPool = <CardPair>[...unseenAtDifficulty];
 
-    for (int i = 0; i < pairCount && matching.isNotEmpty; i++) {
-      final index = Random().nextInt(matching.length);
-      final pair = matching[index];
+    if (selectionPool.length < pairCount) {
+      final extraPairs = allAtDifficulty
+          .where((p) => !selectionPool.contains(p))
+          .toList()
+        ..shuffle(random);
+      selectionPool.addAll(extraPairs);
+    }
+
+    final targetPairs = min(pairCount, selectionPool.length);
+
+    for (int i = 0; i < targetPairs && selectionPool.isNotEmpty; i++) {
+      final index = random.nextInt(selectionPool.length);
+      final pair = selectionPool[index];
       selectedPairs.add(pair);
       _seenPairs.add('${pair.card1.id}_${pair.card2.id}');
-      matching.removeAt(index);
+      selectionPool.removeAt(index);
     }
 
     // Create shuffled deck with all cards from selected pairs
@@ -93,7 +110,7 @@ class _KrishnaMemoryCardsScreenState extends State<KrishnaMemoryCardsScreen> {
     for (final pair in selectedPairs) {
       gameCards.addAll([pair.card1, pair.card2]);
     }
-    gameCards.shuffle(Random());
+    gameCards.shuffle(random);
 
     cardFlipped = List.filled(gameCards.length, false);
     cardMatched = List.filled(gameCards.length, false);
@@ -146,9 +163,13 @@ class _KrishnaMemoryCardsScreenState extends State<KrishnaMemoryCardsScreen> {
     final card1 = gameCards[firstSelectedIndex!];
     final card2 = gameCards[secondSelectedIndex!];
 
-    if (card1.matchId == card2.matchId) {
+    final isPairMatch =
+        card1.matchId == card2.id && card2.matchId == card1.id;
+
+    if (isPairMatch) {
       // Match found
       Future.delayed(const Duration(milliseconds: 500), () {
+        if (!mounted) return;
         setState(() {
           cardMatched[firstSelectedIndex!] = true;
           cardMatched[secondSelectedIndex!] = true;
@@ -165,6 +186,7 @@ class _KrishnaMemoryCardsScreenState extends State<KrishnaMemoryCardsScreen> {
     } else {
       // No match
       Future.delayed(const Duration(milliseconds: 1000), () {
+        if (!mounted) return;
         setState(() {
           cardFlipped[firstSelectedIndex!] = false;
           cardFlipped[secondSelectedIndex!] = false;
