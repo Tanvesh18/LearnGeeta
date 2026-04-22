@@ -1,0 +1,196 @@
+```plantuml
+@startuml LearnGeetaArchitecture
+!define LAYER1 #E8F4F8
+!define LAYER2 #F0E8F8
+!define LAYER3 #E8F8E8
+!define LAYER4 #F8F0E0
+
+title LearnGeeta: Gamified Bhagavad Gita Learning Platform\nSystem Architecture Diagram
+
+skinparam backgroundColor #FEFDF8
+skinparam shadowing false
+skinparam defaultFontName Segoe UI
+skinparam packageStyle rectangle
+
+skinparam rectangle {
+  RoundCorner 10
+  BackgroundColor white
+  BorderColor #333333
+}
+
+skinparam component {
+  BackgroundColor white
+  BorderColor #555555
+}
+
+skinparam database {
+  BackgroundColor white
+  BorderColor #333333
+}
+
+skinparam actor {
+  BackgroundColor #FFF5E6
+  BorderColor #FF9500
+}
+
+actor "User\n(Mobile)" as User
+
+package "PRESENTATION LAYER" as PL LAYER1 {
+
+  package "Core Screens" as CoreUI {
+    component "Home Screen\n(Dashboard, XP, Level)" as HomeScreen
+    component "Gita Reader\n(Verses, TTS, Translation)" as GitaReader
+    component "Profile Screen\n(Stats, Achievements)" as ProfileScreen
+    component "Settings Screen\n(Preferences, Logout)" as SettingsScreen
+  }
+
+  package "Game Screens" as GameUI {
+    component "Game Selector\n(Browse All Games)" as GameSelector
+    component "Game Arena\n(Gameplay UI)" as GameArena
+    component "Score Screen\n(Results, XP Reward)" as ScoreScreen
+  }
+
+  package "Auth Screens" as AuthUI {
+    component "Login Screen" as LoginScreen
+    component "Sign Up Screen" as SignUpScreen
+    component "Password Reset" as PasswordReset
+  }
+
+  package "Navigation" as NavUI {
+    component "Bottom Navigation\n(Provider State)" as BottomNav
+    component "Route Manager\n(Go Router / Named Routes)" as RouteManager
+  }
+}
+
+package "STATE MANAGEMENT LAYER" as SM LAYER2 {
+  component "Provider Notifiers" as Providers
+  component "Auth State Provider" as AuthProvider
+  component "Game State Provider" as GameStateProvider
+  component "User Progress Provider" as ProgressProvider
+  component "Settings Provider" as SettingsProvider
+}
+
+package "BUSINESS LOGIC LAYER" as BL LAYER2 {
+
+  package "Game Engines" as GameLogic {
+    component "Quiz Engine" as QuizEngine
+    component "Memory Engine" as MemoryEngine
+    component "Timed Engine" as TimedEngine
+    component "Strategy Engine" as StrategyEngine
+  }
+
+  package "XP & Progression System" as XPLogic {
+    component "XP Calculator" as XPCalc
+    component "Level Engine" as LevelEngine
+    component "Achievement Manager" as AchievementMgr
+    component "Streak Tracker" as StreakTracker
+  }
+
+  package "Core Services" as Services {
+    component "Gita Service" as GitaService
+    component "TTS Service" as TTSService
+    component "Animation Service" as AnimService
+  }
+}
+
+package "DATA ACCESS LAYER" as DAL LAYER3 {
+  component "Repository Pattern" as RepoPattern
+  component "User Repository" as UserRepo
+  component "Game Repository" as GameRepo
+  component "Progress Repository" as ProgressRepo
+  component "Gita Repository" as GitaRepo
+}
+
+package "LOCAL STORAGE" as LocalStorage LAYER3 {
+  component "SharedPreferences" as SharedPref
+  component "Local File System" as LocalFS
+}
+
+package "BACKEND LAYER (Supabase)" as BE LAYER4 {
+
+  package "Authentication" as AuthSvc {
+    component "Supabase Auth" as SupaAuth
+    component "JWT Tokens" as JWT
+  }
+
+  package "API Layer" as APIBL {
+    component "REST API" as RESTAPI
+    component "Realtime Subscriptions" as Realtime
+  }
+
+  package "Security" as SecSvc {
+    component "Row Level Security" as RLS
+    component "API Keys" as APIKeys
+  }
+}
+
+package "DATABASE LAYER" as DL LAYER4 {
+
+  database "PostgreSQL" as PostgreSQL {
+    rectangle "users\n- id, email, username" as T_Users
+    rectangle "profiles\n- user_id, level, xp" as T_Profiles
+    rectangle "progress\n- user_id, chapters_read" as T_Progress
+    rectangle "game_stats\n- user_id, score, plays" as T_GameStats
+    rectangle "achievements\n- user_id, badge" as T_Achievements
+  }
+
+  folder "Supabase Storage" as CloudStorage
+}
+
+package "EXTERNAL SERVICES" as ExtSvc LAYER4 {
+  component "Google Fonts" as GoogleFonts
+  component "Text to Speech" as TTS_API
+  component "Device Storage" as DeviceStorage
+}
+
+package "DATA MODELS" as Models LAYER2 {
+  rectangle "User Model" as UserModel
+  rectangle "Profile Model" as ProfileModel
+  rectangle "Game Model" as GameModel
+  rectangle "Verse Model" as VerseModel
+  rectangle "Score Model" as ScoreModel
+}
+
+' Connections
+
+User --> PL : Launch App
+User --> BottomNav : Navigate
+
+CoreUI --> Providers : Use Provider
+GameUI --> Providers : Use Provider
+AuthUI --> AuthProvider : Use Provider
+
+AuthProvider --> Services : Auth State
+GameStateProvider --> GameLogic : Game Logic
+ProgressProvider --> XPLogic : XP Level
+SettingsProvider --> AnimService : Config
+
+GameLogic --> GameRepo : Read Write
+XPLogic --> ProgressRepo : Update Progress
+Services --> GitaRepo : Get Verses
+Services --> SharedPref : Cache Settings
+
+UserRepo --> RESTAPI : Sync Profile
+ProgressRepo --> RESTAPI : Save Stats
+GameRepo --> RESTAPI : Fetch Games
+AuthProvider --> SupaAuth : Login Register
+
+RESTAPI --> PostgreSQL : Query Update
+SupaAuth --> PostgreSQL : Verify Credentials
+RLS --> PostgreSQL : Enforce Policies
+Realtime --> PostgreSQL : Subscribe
+
+PL ..> SharedPref : Cache Data
+PL ..> LocalFS : Read Assets
+
+Services --> GoogleFonts : Load Fonts
+TTSService --> TTS_API : Speak Verses
+SharedPref --> DeviceStorage : Access
+
+UserModel ..> T_Users : Maps To
+ProfileModel ..> T_Profiles : Maps To
+GameModel ..> T_GameStats : Maps To
+VerseModel ..> T_Progress : Maps To
+
+@enduml
+```
