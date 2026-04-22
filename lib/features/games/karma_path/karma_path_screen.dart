@@ -86,6 +86,9 @@ class _KarmaPathScreenState extends State<KarmaPathScreen>
     });
     if (animate) {
       _slideController.forward(from: 0);
+    } else {
+      // Ensure first render is on-screen when initial load skips animation.
+      _slideController.value = 1.0;
     }
     if (_isEnding) {
       Future.delayed(const Duration(milliseconds: 600), _showEndingDialog);
