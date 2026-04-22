@@ -1,26 +1,23 @@
-@startuml LearnGeetaUseCase
-title LearnGeeta Application Use Case Diagram
+@startuml LearnGeetaUseCaseSimple
+title Use Case Diagram of LearnGeeta Application
 
 left to right direction
 skinparam backgroundColor white
 skinparam shadowing false
-skinparam defaultFontName Segoe UI
+skinparam defaultFontName Arial
 skinparam packageStyle rectangle
 
 actor User
 
 rectangle "LearnGeeta Mobile Application" {
 
-  usecase "Register Account" as UC1
-  usecase "Login" as UC2
-  usecase "Read Bhagavad Gita" as UC3
-  usecase "Play Learning Games" as UC4
-  usecase "Earn XP & Level Up" as UC5
-  usecase "Track Progress" as UC6
-  usecase "View Achievements" as UC7
-  usecase "Update Profile" as UC8
-  usecase "Daily Shloka Access" as UC9
-  usecase "Logout" as UC10
+  usecase "Register / Login" as UC1
+  usecase "Learn Bhagavad Gita" as UC2
+  usecase "Play Gamified Learning Games" as UC3
+  usecase "Track Progress & Achievements" as UC4
+  usecase "Manage Profile" as UC5
+  usecase "Access Daily Shloka" as UC6
+  usecase "Logout" as UC7
 }
 
 User --> UC1
@@ -30,12 +27,7 @@ User --> UC4
 User --> UC5
 User --> UC6
 User --> UC7
-User --> UC8
-User --> UC9
-User --> UC10
 
-UC4 --> UC5 : <<include>>
-UC5 --> UC6 : <<include>>
-UC6 --> UC7 : <<extend>>
+UC3 --> UC4 : <<include>>
 
 @enduml

@@ -1,67 +1,51 @@
-@startuml LearnGeetaERDiagram
-title LearnGeeta Database ER Diagram
+@startuml LearnGeetaERDiagramSimple
+title Entity Relationship Diagram of LearnGeeta Database
 
 skinparam backgroundColor white
 skinparam shadowing false
-skinparam defaultFontName Segoe UI
+skinparam defaultFontName Arial
 skinparam linetype ortho
-skinparam class {
-  BackgroundColor #FDFDFD
-  BorderColor #333333
-  ArrowColor #333333
-}
 
 entity "users" as users {
-  * id : uuid <<PK>>
+  * id <<PK>>
   --
-  email : text
-  created_at : timestamp
+  email
 }
 
 entity "profiles" as profiles {
-  * id : uuid <<PK>>
+  * id <<PK>>
   --
-  user_id : uuid <<FK>>
-  username : text
-  level : int
-  xp : int
-  streak : int
-  avatar_url : text
+  user_id <<FK>>
+  username
+  level
+  xp
 }
 
 entity "progress" as progress {
-  * id : uuid <<PK>>
+  * id <<PK>>
   --
-  user_id : uuid <<FK>>
-  total_xp : int
-  current_level : int
-  last_active : date
-  streak_count : int
+  user_id <<FK>>
+  streak
 }
 
 entity "game_stats" as game_stats {
-  * id : uuid <<PK>>
+  * id <<PK>>
   --
-  user_id : uuid <<FK>>
-  game_name : text
-  high_score : int
-  total_games : int
-  max_streak : int
-  updated_at : timestamp
+  user_id <<FK>>
+  game_name
+  high_score
 }
 
 entity "achievements" as achievements {
-  * id : uuid <<PK>>
+  * id <<PK>>
   --
-  user_id : uuid <<FK>>
-  badge_name : text
-  description : text
-  unlocked_at : timestamp
+  user_id <<FK>>
+  badge_name
 }
 
 users ||--|| profiles : owns
 users ||--|| progress : tracks
-users ||--o{ game_stats : has
+users ||--o{ game_stats : records
 users ||--o{ achievements : unlocks
 
 @enduml
