@@ -440,6 +440,8 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
             ],
           ),
           body: Container(
+            width: double.infinity,
+            height: double.infinity,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
@@ -625,7 +627,9 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.06),
+                                        color: Colors.black.withValues(
+                                          alpha: 0.06,
+                                        ),
                                         blurRadius: 8,
                                         offset: const Offset(0, 2),
                                       ),
@@ -670,70 +674,74 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
                       const SizedBox(height: 24),
 
                       // Buttons Row
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            if (showAnswer == false && !isAnswerChecked)
-                              ElevatedButton.icon(
+                      // Buttons Row
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: [
+                          if (showAnswer == false && !isAnswerChecked)
+                            SizedBox(
+                              width: 150,
+                              child: ElevatedButton.icon(
                                 onPressed: _showAnswer,
                                 icon: const Icon(Icons.visibility),
                                 label: const Text('Show Answer'),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.amber,
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 12,
+                                    vertical: 14,
                                   ),
                                 ),
-                              )
-                            else if (showAnswer)
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.green.shade100,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Wrap(
-                                  children: [
-                                    for (
-                                      int i = 0;
-                                      i < currentVerse.lines.length;
-                                      i++
-                                    )
-                                      Padding(
-                                        padding: const EdgeInsets.all(4),
-                                        child: Chip(
-                                          label: Text(
-                                            currentVerse.lines[i],
-                                            style:
-                                                GoogleFonts.notoSerifDevanagari(),
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                ),
                               ),
-                            if (!isAnswerChecked) ...[
-                              const SizedBox(width: 12),
-                              ElevatedButton.icon(
+                            )
+                          else if (showAnswer)
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.green.shade100,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Wrap(
+                                spacing: 6,
+                                runSpacing: 6,
+                                children: [
+                                  for (
+                                    int i = 0;
+                                    i < currentVerse.lines.length;
+                                    i++
+                                  )
+                                    Chip(
+                                      label: Text(
+                                        currentVerse.lines[i],
+                                        style:
+                                            GoogleFonts.notoSerifDevanagari(),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+
+                          if (!isAnswerChecked)
+                            SizedBox(
+                              width: 130,
+                              child: ElevatedButton.icon(
                                 onPressed: _skipVerse,
                                 icon: const Icon(Icons.skip_next),
                                 label: const Text('Skip (-5)'),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.grey,
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 12,
+                                    vertical: 14,
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 12),
-                              ElevatedButton.icon(
+                            ),
+
+                          if (!isAnswerChecked)
+                            SizedBox(
+                              width: 120,
+                              child: ElevatedButton.icon(
                                 onPressed: isCheckButtonDisabled
                                     ? null
                                     : _checkAnswer,
@@ -742,15 +750,16 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.green,
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 24,
-                                    vertical: 12,
+                                    vertical: 14,
                                   ),
                                 ),
                               ),
-                            ],
-                            if (isAnswerChecked) ...[
-                              const SizedBox(width: 12),
-                              ElevatedButton.icon(
+                            ),
+
+                          if (isAnswerChecked)
+                            SizedBox(
+                              width: 150,
+                              child: ElevatedButton.icon(
                                 onPressed: _restartLevel,
                                 icon: const Icon(Icons.refresh),
                                 label: const Text('Restart'),
@@ -758,14 +767,12 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
                                   backgroundColor: AppColors.saffron,
                                   foregroundColor: Colors.white,
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 20,
-                                    vertical: 12,
+                                    vertical: 14,
                                   ),
                                 ),
                               ),
-                            ],
-                          ],
-                        ),
+                            ),
+                        ],
                       ),
                     ],
                   ),
@@ -800,7 +807,5 @@ class _VerseOrderScreenState extends State<VerseOrderScreen>
   bool get isAnswerCheckAndCorrect => isAnswerChecked && isAnswerCorrect;
 
   bool isAnswerCheckAndWrong(int index) =>
-      isAnswerChecked &&
-      !isAnswerCorrect &&
-      shuffledOrder[index] != index;
+      isAnswerChecked && !isAnswerCorrect && shuffledOrder[index] != index;
 }
